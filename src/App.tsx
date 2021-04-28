@@ -24,7 +24,7 @@ export default class App extends React.Component<{}, State> {
 
     this.onOpenSettingsClick = this.onOpenSettingsClick.bind(this);
     this.onClearHistoryClick = this.onClearHistoryClick.bind(this);
-    this.onNextNoteClick = this.onNextNoteClick.bind(this);
+    this.onNoteScreenClick = this.onNoteScreenClick.bind(this);
   }
 
   render() {
@@ -88,10 +88,14 @@ export default class App extends React.Component<{}, State> {
   }
 
   updateSetting<K extends keyof Settings>(setting: K, value: Settings[K]) {
-    this.setState((prevState) => ({
-      ...prevState,
-      settings: { ...prevState.settings, [setting]: value },
-    }));
+    this.setState((prevState) => {
+      const newSettings = { ...prevState.settings, [setting]: value };
+      saveSettings(newSettings);
+      return {
+        ...prevState,
+        settings: newSettings,
+      };
+    });
   }
 
   renderNotePage(): React.ReactElement {
@@ -101,20 +105,21 @@ export default class App extends React.Component<{}, State> {
     const { distinctSharpsAndFlats } = this.state.settings;
 
     return (
-      <div className="App">
+      <div
+        className={
+          "App" +
+          (getPossibleNextNotes(this.state.history, this.state.settings)
+            .length === 0
+            ? " LastNote"
+            : "")
+        }
+        onClick={this.onNoteScreenClick}
+      >
         <section>
           <button onClick={this.onOpenSettingsClick}>Settings</button>
           <button onClick={this.onClearHistoryClick}>Reset</button>
         </section>
-        <section
-          onClick={this.onNextNoteClick}
-          className={
-            getPossibleNextNotes(this.state.history, this.state.settings)
-              .length === 0
-              ? "LastNote"
-              : ""
-          }
-        >
+        <section>
           <h2>Current note</h2>
           {currentNote !== undefined && (
             <div className="CurrentNote">
@@ -142,7 +147,11 @@ export default class App extends React.Component<{}, State> {
     saveNoteHistory([]);
   }
 
-  onNextNoteClick() {
+  onNoteScreenClick(event: React.MouseEvent) {
+    if (event.target instanceof HTMLButtonElement) {
+      return;
+    }
+
     this.setState((prevState) => {
       const nextNote = getRandomNextNote(prevState.history, prevState.settings);
       const newHistory =
@@ -192,6 +201,26 @@ enum Note {
   GSharp,
   AFlat,
 }
+
+const ALL_NOTES: readonly Note[] = [
+  Note.A,
+  Note.ASharp,
+  Note.BFlat,
+  Note.B,
+  Note.C,
+  Note.CSharp,
+  Note.DFlat,
+  Note.D,
+  Note.DSharp,
+  Note.EFlat,
+  Note.E,
+  Note.F,
+  Note.FSharp,
+  Note.GFlat,
+  Note.G,
+  Note.GSharp,
+  Note.AFlat,
+];
 
 enum Natural {
   A,
@@ -357,6 +386,11 @@ function isValidSettings(x: unknown): x is Settings {
   );
 }
 
+function saveSettings(settings: Settings) {
+  const s = JSON.stringify(settings);
+  localStorage.setItem(LocalStorageKey.Settings, s);
+}
+
 function loadNoteHistory(): Note[] {
   const s = localStorage.getItem(LocalStorageKey.NoteHistory);
   if (s === null) {
@@ -420,25 +454,7 @@ function getRandomNextNote(prev: Note[], settings: Settings): undefined | Note {
 }
 
 function getPossibleNextNotes(prev: Note[], settings: Settings): Note[] {
-  let possible = [
-    Note.A,
-    Note.ASharp,
-    Note.BFlat,
-    Note.B,
-    Note.C,
-    Note.CSharp,
-    Note.DFlat,
-    Note.D,
-    Note.DSharp,
-    Note.EFlat,
-    Note.E,
-    Note.F,
-    Note.FSharp,
-    Note.GFlat,
-    Note.G,
-    Note.GSharp,
-    Note.AFlat,
-  ];
+  let possible = ALL_NOTES.slice();
 
   if (settings.naturalsOnly) {
     possible = possible.filter(

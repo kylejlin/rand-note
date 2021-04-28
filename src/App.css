@@ -1,3 +1,17 @@
+@media (min-aspect-ratio: 1/1) {
+  html {
+    --major-axis: 100vw;
+    --minor-axis: 100vh;
+  }
+}
+
+@media (max-aspect-ratio: 1/1) {
+  html {
+    --major-axis: 100vh;
+    --minor-axis: 100vw;
+  }
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -9,12 +23,31 @@ body {
 
 .App {
   text-align: center;
+  height: 100vh;
+}
+
+.CurrentNote {
+  color: black;
+  background-color: #d8d8d8;
+
+  display: inline-block;
+  font-size: calc(0.3 * var(--minor-axis));
+  margin: calc(0.01 * var(--minor-axis));
+  padding: calc(0.01 * var(--minor-axis));
+  border-radius: calc(0.01 * var(--minor-axis));
 }
 
 .HistoryNote {
+  color: black;
+  background-color: #d8d8d8;
+
   display: inline-block;
+  font-size: calc(0.05 * var(--minor-axis));
+  margin: calc(0.01 * var(--minor-axis));
+  padding: calc(0.01 * var(--minor-axis));
+  border-radius: calc(0.01 * var(--minor-axis));
 }
 
-.LastNote {
-  color: green;
+.App.LastNote {
+  background-color: #c2eec2;
 }
