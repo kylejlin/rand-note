@@ -55,30 +55,30 @@ export default class App extends React.Component<{}, State> {
         <section>
           <button onClick={this.onCloseSettingsClick}>Close</button>
         </section>
-        <section>
-          <label>
-            Naturals only:{" "}
+        <section className="Settings">
+          <label className="Setting">
             <input
               type="checkbox"
               checked={this.state.settings.naturalsOnly}
               onChange={this.onNaturalsOnlyChange}
             />
+            Naturals only
           </label>
-          <label>
-            Allow repeats:{" "}
+          <label className="Setting">
             <input
               type="checkbox"
               checked={this.state.settings.allowRepeats}
               onChange={this.onAllowRepeatsChange}
             />
+            Allow repeats
           </label>
-          <label>
-            Distinct sharps and flats:{" "}
+          <label className="Setting">
             <input
               type="checkbox"
               checked={this.state.settings.distinctSharpsAndFlats}
               onChange={this.onDistinctSharpsAndFlatsChange}
             />
+            Distinct sharps and flats
           </label>
         </section>
       </div>

@@ -26,6 +26,31 @@ body {
   height: 100vh;
 }
 
+.Settings {
+  text-align: left;
+  padding-left: calc(0.05 * var(--minor-axis));
+  font-size: calc(0.05 * var(--minor-axis));
+}
+
+.Setting {
+  display: block;
+  margin-top: calc(0.05 * var(--minor-axis));
+}
+
+.Setting input {
+  margin-right: calc(0.05 * var(--minor-axis));
+
+  /* Scale checkboxes.
+     Based on https://stackoverflow.com/a/10415275/7215455
+  */
+  --checkbox-scale: 2;
+  -ms-transform: scale(var(--checkbox-scale)); /* IE */
+  -moz-transform: scale(var(--checkbox-scale)); /* FF */
+  -webkit-transform: scale(var(--checkbox-scale)); /* Safari and Chrome */
+  -o-transform: scale(var(--checkbox-scale)); /* Opera */
+  transform: scale(var(--checkbox-scale));
+}
+
 .CurrentNote {
   color: black;
   background-color: #d8d8d8;
