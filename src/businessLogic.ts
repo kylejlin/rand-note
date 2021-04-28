@@ -161,22 +161,28 @@ export function alternativeName(note: Note): Note {
       return Note.GSharp;
     case Note.ASharp:
       return Note.BFlat;
+
     case Note.BFlat:
       return Note.ASharp;
+
     case Note.CSharp:
       return Note.DFlat;
+
     case Note.DFlat:
       return Note.CSharp;
     case Note.DSharp:
       return Note.EFlat;
+
     case Note.EFlat:
       return Note.DSharp;
+
     case Note.FSharp:
       return Note.GFlat;
+
     case Note.GFlat:
       return Note.FSharp;
     case Note.GSharp:
-      return Note.ASharp;
+      return Note.AFlat;
 
     case Note.A:
     case Note.B:
