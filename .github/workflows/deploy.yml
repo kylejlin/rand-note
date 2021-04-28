@@ -16,13 +16,11 @@ jobs:
       - name: Test
         run: npm test
 
-      # We need to set up the Git username and email
-      # so the `gh-pages` tool will know how to write
-      # its commit.
-      - name: Set Git username and email
-        run: |
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com" &&
-          git config --global user.name "GitHub Actions Bot"
+      - name: Build
+        run: npm run build
 
       - name: Deploy
-        run: npm run deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build
