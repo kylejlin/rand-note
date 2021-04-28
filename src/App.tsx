@@ -135,10 +135,12 @@ export default class App extends React.Component<{}, State> {
         </section>
         <section>
           <h2>Current note</h2>
-          {currentNote !== undefined && (
+          {currentNote !== undefined ? (
             <div className="CurrentNote">
               {noteStrings(currentNote, distinctSharpsAndFlats)}
             </div>
+          ) : (
+            <div>Tap to generate</div>
           )}
         </section>
         <section>
