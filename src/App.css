@@ -56,6 +56,10 @@ button {
 .Setting input {
   margin-right: calc(0.05 * var(--minor-axis));
 
+  border-color: #767676;
+  border-style: solid;
+  background-color: transparent;
+
   /* Scale checkboxes.
      Based on https://stackoverflow.com/a/10415275/7215455
   */
