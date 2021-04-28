@@ -24,6 +24,17 @@ body {
 .App {
   text-align: center;
   height: 100vh;
+  padding-top: calc(0.05 * var(--minor-axis));
+}
+
+button {
+  --margin-factor: 0.02;
+  margin-left: calc(var(--margin-factor) * var(--minor-axis));
+  margin-right: calc(var(--margin-factor) * var(--minor-axis));
+
+  width: calc(0.3 * var(--minor-axis));
+  height: calc(0.1 * var(--minor-axis));
+  font-size: calc(0.05 * var(--minor-axis));
 }
 
 .Settings {
