@@ -71,6 +71,10 @@ button {
   transform: scale(var(--checkbox-scale));
 }
 
+h2 {
+  font-size: calc(0.1 * var(--minor-axis));
+}
+
 .CurrentNote {
   color: black;
   background-color: #d8d8d8;
