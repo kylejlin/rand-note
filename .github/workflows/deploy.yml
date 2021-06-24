@@ -14,7 +14,7 @@ jobs:
         run: |
           mkdir node_modules;
           tar -xzf node_modules_backup/node_modules.tar.gz -C node_modules;
-          if [[! npm test]]; then do npm install fi
+          if [[! npm test]]; then npm install fi
           
       - name: Test
         run: npm test
