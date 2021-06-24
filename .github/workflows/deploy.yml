@@ -11,8 +11,11 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install dependencies
-        run: npm install
-
+        run: |
+          mkdir node_modules;
+          tar -xzf node_modules_backup/node_modules.tar.gz -C node_modules;
+          if [[! npm test]]; then do npm install fi
+          
       - name: Test
         run: npm test
 
