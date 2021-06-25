@@ -218,6 +218,21 @@ export function noteStrings(
   note: Note,
   equivalenceRelation: EquivalenceRelation
 ): string {
+  function compareSuchThatOriginalNatSharpFlatIsAscending(
+    a: Note,
+    b: Note
+  ): number {
+    if (a === note) {
+      return -Infinity;
+    } else if (b === note) {
+      return Infinity;
+    } else {
+      const aScore = scoreSuchThatNatLtSharpLtFlat(a);
+      const bScore = scoreSuchThatNatLtSharpLtFlat(b);
+      return aScore - bScore;
+    }
+  }
+
   switch (equivalenceRelation) {
     case EquivalenceRelation.ReflexiveOnly:
       return noteString(note);
@@ -233,11 +248,11 @@ export function noteStrings(
       const nat = natural(note);
       const sharp = sharpOfNatural(nat);
       const flat = flatOfNatural(nat);
-      return (
-        naturalString(nat) +
-        (sharp === undefined ? "" : "/" + noteString(sharp)) +
-        (flat === undefined ? "" : "/" + noteString(flat))
-      );
+      const notes = [naturalToNote(nat), sharp, flat]
+        .filter(isNotUndefined)
+        .sort(compareSuchThatOriginalNatSharpFlatIsAscending);
+
+      return notes.map(noteString).join("/");
     }
   }
 }
@@ -296,6 +311,44 @@ export function flatOfNatural(nat: Natural): undefined | Note {
       return undefined;
     case Natural.G:
       return Note.GFlat;
+  }
+}
+
+export function naturalToNote(nat: Natural): Note {
+  switch (nat) {
+    case Natural.A:
+      return Note.A;
+    case Natural.B:
+      return Note.B;
+    case Natural.C:
+      return Note.C;
+    case Natural.D:
+      return Note.D;
+    case Natural.E:
+      return Note.E;
+    case Natural.F:
+      return Note.F;
+    case Natural.G:
+      return Note.G;
+  }
+}
+
+export function scoreSuchThatNatLtSharpLtFlat(note: Note): number {
+  switch (modification(note)) {
+    case Modification.None:
+      return 0;
+    case Modification.Sharp:
+      return 1;
+    case Modification.Flat:
+      return 2;
+  }
+}
+
+export function isNotUndefined<T>(v: T | undefined): v is T {
+  if (v === undefined) {
+    return false;
+  } else {
+    return true;
   }
 }
 

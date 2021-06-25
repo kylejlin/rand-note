@@ -154,8 +154,8 @@ export default class App extends React.Component<{}, State> {
           )}
         </section>
         <section>
-          {this.state.history.map((note) => (
-            <div className="HistoryNote">
+          {this.state.history.map((note, i) => (
+            <div className="HistoryNote" key={i}>
               {noteStrings(note, equivalenceRelation)}
             </div>
           ))}
