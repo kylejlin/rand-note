@@ -12,11 +12,11 @@ export interface Settings {
 
 export enum EquivalenceRelation {
   /** `ASharp !== BFlat`, `A !== ASharp` */
-  ReflexiveOnly = "ReflexiveOnly",
+  ReflexiveOnly = 0,
   /** `ASharp === BFlat`, `A !== ASharp` */
-  ByPitch = "ByPitch",
+  ByPitch = 1,
   /** `ASharp !== BFlat`, `A === ASharp === AFlat` */
-  ByLetter = "ByLetter",
+  ByLetter = 2,
 }
 
 export const DEFAULT_SETTINGS: Settings = {
