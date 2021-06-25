@@ -12,8 +12,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          mkdir node_modules;
-          tar -xzf node_modules_backup/node_modules.tar.gz -C node_modules;
+          tar -xzf node_modules_backup/node_modules.tar.gz;
+          
           # Only reinstall if tests fail
           npm test || npm install
           
