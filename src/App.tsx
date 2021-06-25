@@ -75,25 +75,25 @@ export default class App extends React.Component<{}, State> {
             Allow repeats
           </label>
           <label className="Setting">
-            <select
-              value={this.state.settings.equivalenceRelation}
-              onChange={this.onNoteEquivalenceRelationChange}
-            >
-              <option value={EquivalenceRelation.ReflexiveOnly}>
-                Reflexive only
-              </option>
-              <option value={EquivalenceRelation.ByPitch}>By pitch</option>
-              <option value={EquivalenceRelation.ByLetter}>By letter</option>
-            </select>
-            Note equivalence relation
-          </label>
-          <label className="Setting">
             <input
               type="checkbox"
               checked={this.state.settings.displayEquivalentNotes}
               onChange={this.onDisplayEquivalentNotesChange}
             />
             Display equivalent notes
+          </label>
+          <label className="Setting Setting--dropdown">
+            Note equivalence relation
+            <select
+              value={this.state.settings.equivalenceRelation}
+              onChange={this.onNoteEquivalenceRelationChange}
+            >
+              <option value={EquivalenceRelation.ReflexiveOnly}>
+                Reflexive only (default)
+              </option>
+              <option value={EquivalenceRelation.ByPitch}>By pitch</option>
+              <option value={EquivalenceRelation.ByLetter}>By letter</option>
+            </select>
           </label>
         </section>
       </div>

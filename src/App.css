@@ -72,6 +72,28 @@ button {
   transform: scale(var(--checkbox-scale));
 }
 
+.Setting select {
+  margin-right: calc(0.05 * var(--minor-axis));
+  margin-top: calc(0.03 * var(--minor-axis));
+
+  border-color: #767676;
+  outline-color: #4caf50ff;
+  border-style: solid;
+  background-color: transparent;
+
+  font-size: calc(0.05 * var(--minor-axis));
+  display: block;
+}
+
+.Setting--dropdown {
+  border-color: #4caf50ff;
+  border-style: solid;
+  border-radius: calc(0.03 * var(--minor-axis));
+  background-color: transparent;
+  padding: calc(0.03 * var(--minor-axis));
+  display: inline-block;
+}
+
 h2 {
   font-size: calc(0.1 * var(--minor-axis));
 }
