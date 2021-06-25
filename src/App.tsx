@@ -7,6 +7,7 @@ import {
   noteStrings,
   getRandomNextNote,
   Settings,
+  EquivalenceRelation,
 } from "./businessLogic";
 import {
   loadSettings,
@@ -32,9 +33,8 @@ export default class App extends React.Component<{}, State> {
     this.onCloseSettingsClick = this.onCloseSettingsClick.bind(this);
     this.onNaturalsOnlyChange = this.onNaturalsOnlyChange.bind(this);
     this.onAllowRepeatsChange = this.onAllowRepeatsChange.bind(this);
-    this.onDistinctSharpsAndFlatsChange = this.onDistinctSharpsAndFlatsChange.bind(
-      this
-    );
+    this.onNoteEquivalenceRelationChange =
+      this.onNoteEquivalenceRelationChange.bind(this);
 
     this.onOpenSettingsClick = this.onOpenSettingsClick.bind(this);
     this.onClearHistoryClick = this.onClearHistoryClick.bind(this);
@@ -73,12 +73,17 @@ export default class App extends React.Component<{}, State> {
             Allow repeats
           </label>
           <label className="Setting">
-            <input
-              type="checkbox"
-              checked={this.state.settings.distinctSharpsAndFlats}
-              onChange={this.onDistinctSharpsAndFlatsChange}
-            />
-            Distinct sharps and flats
+            <select
+              value={this.state.settings.equivalenceRelation}
+              onChange={this.onNoteEquivalenceRelationChange}
+            >
+              <option value={EquivalenceRelation.ReflexiveOnly}>
+                Reflexive only
+              </option>
+              <option value={EquivalenceRelation.ByPitch}>By pitch</option>
+              <option value={EquivalenceRelation.ByLetter}>By letter</option>
+            </select>
+            Note equivalence relation
           </label>
         </section>
       </div>
@@ -97,8 +102,14 @@ export default class App extends React.Component<{}, State> {
     this.updateSetting("allowRepeats", event.target.checked);
   }
 
-  onDistinctSharpsAndFlatsChange(event: React.ChangeEvent<HTMLInputElement>) {
-    this.updateSetting("distinctSharpsAndFlats", event.target.checked);
+  onNoteEquivalenceRelationChange(event: React.ChangeEvent<HTMLSelectElement>) {
+    const n = parseInt(event.target.value, 10);
+    if (n in EquivalenceRelation) {
+      this.updateSetting(
+        "equivalenceRelation",
+        n as unknown as EquivalenceRelation
+      );
+    }
   }
 
   updateSetting<K extends keyof Settings>(setting: K, value: Settings[K]) {
@@ -113,10 +124,9 @@ export default class App extends React.Component<{}, State> {
   }
 
   renderNotePage(): React.ReactElement {
-    const currentNote: Note | undefined = this.state.history[
-      this.state.history.length - 1
-    ];
-    const { distinctSharpsAndFlats } = this.state.settings;
+    const currentNote: Note | undefined =
+      this.state.history[this.state.history.length - 1];
+    const { equivalenceRelation } = this.state.settings;
 
     return (
       <div
@@ -137,7 +147,7 @@ export default class App extends React.Component<{}, State> {
           <h2>Current note</h2>
           {currentNote !== undefined ? (
             <div className="CurrentNote">
-              {noteStrings(currentNote, distinctSharpsAndFlats)}
+              {noteStrings(currentNote, equivalenceRelation)}
             </div>
           ) : (
             <div>Tap to generate</div>
@@ -146,7 +156,7 @@ export default class App extends React.Component<{}, State> {
         <section>
           {this.state.history.map((note) => (
             <div className="HistoryNote">
-              {noteStrings(note, distinctSharpsAndFlats)}
+              {noteStrings(note, equivalenceRelation)}
             </div>
           ))}
         </section>

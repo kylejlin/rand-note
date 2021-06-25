@@ -1,4 +1,9 @@
-import { DEFAULT_SETTINGS, Note, Settings } from "./businessLogic";
+import {
+  DEFAULT_SETTINGS,
+  EquivalenceRelation,
+  Note,
+  Settings,
+} from "./businessLogic";
 
 enum LocalStorageKey {
   Settings = "RandNote.Settings",
@@ -25,9 +30,10 @@ function isValidSettings(x: unknown): x is Settings {
   return (
     "object" === typeof x &&
     x !== null &&
-    "boolean" === typeof (x as any).naturalsOnly &&
-    "boolean" === typeof (x as any).allowRepeats &&
-    "boolean" === typeof (x as any).distinctSharpsAndFlats
+    "boolean" === typeof (x as Settings).naturalsOnly &&
+    "boolean" === typeof (x as Settings).allowRepeats &&
+    "number" === typeof (x as Settings).equivalenceRelation &&
+    (x as Settings).equivalenceRelation in EquivalenceRelation
   );
 }
 

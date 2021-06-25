@@ -7,13 +7,22 @@ export interface State {
 export interface Settings {
   naturalsOnly: boolean;
   allowRepeats: boolean;
-  distinctSharpsAndFlats: boolean;
+  equivalenceRelation: EquivalenceRelation;
+}
+
+export enum EquivalenceRelation {
+  /** `ASharp !== BFlat`, `A !== ASharp` */
+  ReflexiveOnly = "ReflexiveOnly",
+  /** `ASharp === BFlat`, `A !== ASharp` */
+  ByPitch = "ByPitch",
+  /** `ASharp !== BFlat`, `A === ASharp === AFlat` */
+  ByLetter = "ByLetter",
 }
 
 export const DEFAULT_SETTINGS: Settings = {
   naturalsOnly: true,
   allowRepeats: false,
-  distinctSharpsAndFlats: true,
+  equivalenceRelation: EquivalenceRelation.ReflexiveOnly,
 };
 
 export enum Note {
@@ -65,6 +74,16 @@ export enum Natural {
   F,
   G,
 }
+
+export const ALL_NATURALS: readonly Natural[] = [
+  Natural.A,
+  Natural.B,
+  Natural.C,
+  Natural.D,
+  Natural.E,
+  Natural.F,
+  Natural.G,
+];
 
 export enum Modification {
   None,
@@ -197,13 +216,29 @@ export function alternativeName(note: Note): Note {
 
 export function noteStrings(
   note: Note,
-  distinctSharpsAndFlats: boolean
+  equivalenceRelation: EquivalenceRelation
 ): string {
-  const alt = alternativeName(note);
-  if (alt === note || distinctSharpsAndFlats) {
-    return noteString(note);
-  } else {
-    return noteString(note) + "/" + noteString(alt);
+  switch (equivalenceRelation) {
+    case EquivalenceRelation.ReflexiveOnly:
+      return noteString(note);
+    case EquivalenceRelation.ByPitch: {
+      const alt = alternativeName(note);
+      if (alt === note) {
+        return noteString(note);
+      } else {
+        return noteString(note) + "/" + noteString(alt);
+      }
+    }
+    case EquivalenceRelation.ByLetter: {
+      const nat = natural(note);
+      const sharp = sharpOfNatural(nat);
+      const flat = flatOfNatural(nat);
+      return (
+        naturalString(nat) +
+        (sharp === undefined ? "" : "/" + noteString(sharp)) +
+        (flat === undefined ? "" : "/" + noteString(flat))
+      );
+    }
   }
 }
 
@@ -223,6 +258,44 @@ export function modificationString(mod: Modification): string {
       return "♯";
     case Modification.Flat:
       return "♭";
+  }
+}
+
+export function sharpOfNatural(nat: Natural): undefined | Note {
+  switch (nat) {
+    case Natural.A:
+      return Note.ASharp;
+    case Natural.B:
+      return undefined;
+    case Natural.C:
+      return Note.CSharp;
+    case Natural.D:
+      return Note.DSharp;
+    case Natural.E:
+      return undefined;
+    case Natural.F:
+      return Note.FSharp;
+    case Natural.G:
+      return Note.GSharp;
+  }
+}
+
+export function flatOfNatural(nat: Natural): undefined | Note {
+  switch (nat) {
+    case Natural.A:
+      return Note.AFlat;
+    case Natural.B:
+      return Note.BFlat;
+    case Natural.C:
+      return undefined;
+    case Natural.D:
+      return Note.DFlat;
+    case Natural.E:
+      return Note.EFlat;
+    case Natural.F:
+      return undefined;
+    case Natural.G:
+      return Note.GFlat;
   }
 }
 
@@ -247,15 +320,16 @@ export function getPossibleNextNotes(prev: Note[], settings: Settings): Note[] {
     return possible;
   }
 
-  if (settings.distinctSharpsAndFlats) {
-    possible = possible.filter((note) => !prev.includes(note));
-  } else {
-    possible = possible.filter(
-      (note) => !prev.includes(note) && !prev.includes(alternativeName(note))
-    );
-  }
-
-  return possible;
+  return possible.filter(
+    (possibleNote) =>
+      !prev.some((prevNote) =>
+        areEqualAccordingTo(
+          settings.equivalenceRelation,
+          possibleNote,
+          prevNote
+        )
+      )
+  );
 }
 
 export function randomElement<T>(arr: T[]): undefined | T {
@@ -263,5 +337,20 @@ export function randomElement<T>(arr: T[]): undefined | T {
     return undefined;
   } else {
     return arr[Math.floor(Math.random() * arr.length)];
+  }
+}
+
+export function areEqualAccordingTo(
+  rel: EquivalenceRelation,
+  a: Note,
+  b: Note
+): boolean {
+  switch (rel) {
+    case EquivalenceRelation.ReflexiveOnly:
+      return a === b;
+    case EquivalenceRelation.ByPitch:
+      return a === b || a === alternativeName(b);
+    case EquivalenceRelation.ByLetter:
+      return natural(a) === natural(b);
   }
 }
