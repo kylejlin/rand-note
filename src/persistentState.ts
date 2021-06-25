@@ -33,7 +33,8 @@ function isValidSettings(x: unknown): x is Settings {
     "boolean" === typeof (x as Settings).naturalsOnly &&
     "boolean" === typeof (x as Settings).allowRepeats &&
     "number" === typeof (x as Settings).equivalenceRelation &&
-    (x as Settings).equivalenceRelation in EquivalenceRelation
+    (x as Settings).equivalenceRelation in EquivalenceRelation &&
+    "boolean" === typeof (x as Settings).displayEquivalentNotes
   );
 }
 

@@ -8,6 +8,7 @@ export interface Settings {
   naturalsOnly: boolean;
   allowRepeats: boolean;
   equivalenceRelation: EquivalenceRelation;
+  displayEquivalentNotes: boolean;
 }
 
 export enum EquivalenceRelation {
@@ -23,6 +24,7 @@ export const DEFAULT_SETTINGS: Settings = {
   naturalsOnly: true,
   allowRepeats: false,
   equivalenceRelation: EquivalenceRelation.ReflexiveOnly,
+  displayEquivalentNotes: true,
 };
 
 export enum Note {
@@ -216,8 +218,13 @@ export function alternativeName(note: Note): Note {
 
 export function noteStrings(
   note: Note,
-  equivalenceRelation: EquivalenceRelation
+  equivalenceRelation: EquivalenceRelation,
+  displayEquivalentNotes: boolean
 ): string {
+  if (!displayEquivalentNotes) {
+    return noteString(note);
+  }
+
   function compareSuchThatOriginalNatSharpFlatIsAscending(
     a: Note,
     b: Note

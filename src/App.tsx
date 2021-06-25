@@ -35,6 +35,8 @@ export default class App extends React.Component<{}, State> {
     this.onAllowRepeatsChange = this.onAllowRepeatsChange.bind(this);
     this.onNoteEquivalenceRelationChange =
       this.onNoteEquivalenceRelationChange.bind(this);
+    this.onDisplayEquivalentNotesChange =
+      this.onDisplayEquivalentNotesChange.bind(this);
 
     this.onOpenSettingsClick = this.onOpenSettingsClick.bind(this);
     this.onClearHistoryClick = this.onClearHistoryClick.bind(this);
@@ -85,6 +87,14 @@ export default class App extends React.Component<{}, State> {
             </select>
             Note equivalence relation
           </label>
+          <label className="Setting">
+            <input
+              type="checkbox"
+              checked={this.state.settings.displayEquivalentNotes}
+              onChange={this.onDisplayEquivalentNotesChange}
+            />
+            Display equivalent notes
+          </label>
         </section>
       </div>
     );
@@ -112,6 +122,10 @@ export default class App extends React.Component<{}, State> {
     }
   }
 
+  onDisplayEquivalentNotesChange(event: React.ChangeEvent<HTMLInputElement>) {
+    this.updateSetting("displayEquivalentNotes", event.target.checked);
+  }
+
   updateSetting<K extends keyof Settings>(setting: K, value: Settings[K]) {
     this.setState((prevState) => {
       const newSettings = { ...prevState.settings, [setting]: value };
@@ -126,7 +140,7 @@ export default class App extends React.Component<{}, State> {
   renderNotePage(): React.ReactElement {
     const currentNote: Note | undefined =
       this.state.history[this.state.history.length - 1];
-    const { equivalenceRelation } = this.state.settings;
+    const { equivalenceRelation, displayEquivalentNotes } = this.state.settings;
 
     return (
       <div
@@ -147,7 +161,11 @@ export default class App extends React.Component<{}, State> {
           <h2>Current note</h2>
           {currentNote !== undefined ? (
             <div className="CurrentNote">
-              {noteStrings(currentNote, equivalenceRelation)}
+              {noteStrings(
+                currentNote,
+                equivalenceRelation,
+                displayEquivalentNotes
+              )}
             </div>
           ) : (
             <div>Tap to generate</div>
@@ -156,7 +174,7 @@ export default class App extends React.Component<{}, State> {
         <section>
           {this.state.history.map((note, i) => (
             <div className="HistoryNote" key={i}>
-              {noteStrings(note, equivalenceRelation)}
+              {noteStrings(note, equivalenceRelation, displayEquivalentNotes)}
             </div>
           ))}
         </section>
