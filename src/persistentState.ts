@@ -1,9 +1,10 @@
+import { DEFAULT_SETTINGS, Sample, Settings } from "./businessLogic";
 import {
-  DEFAULT_SETTINGS,
-  EquivalenceRelation,
-  Note,
-  Settings,
-} from "./businessLogic";
+  deserializeNoteHistory,
+  deserializeSettings,
+  serializeNoteHistory,
+  serializeSettings,
+} from "./serde";
 
 enum LocalStorageKey {
   Settings = "RandNote.Settings",
@@ -16,58 +17,35 @@ export function loadSettings(): Settings {
     return DEFAULT_SETTINGS;
   }
 
-  try {
-    const parsed = JSON.parse(s);
-    if (isValidSettings(parsed)) {
-      return parsed;
-    }
-  } catch {}
-
-  return DEFAULT_SETTINGS;
-}
-
-function isValidSettings(x: unknown): x is Settings {
-  return (
-    "object" === typeof x &&
-    x !== null &&
-    "boolean" === typeof (x as Settings).naturalsOnly &&
-    "boolean" === typeof (x as Settings).allowRepeats &&
-    "number" === typeof (x as Settings).equivalenceRelation &&
-    (x as Settings).equivalenceRelation in EquivalenceRelation &&
-    "boolean" === typeof (x as Settings).displayEquivalentNotes
-  );
+  const possiblyUndefinedSettings = deserializeSettings(s);
+  if (possiblyUndefinedSettings !== undefined) {
+    return possiblyUndefinedSettings;
+  } else {
+    return DEFAULT_SETTINGS;
+  }
 }
 
 export function saveSettings(settings: Settings) {
-  const s = JSON.stringify(settings);
-  localStorage.setItem(LocalStorageKey.Settings, s);
+  localStorage.setItem(LocalStorageKey.Settings, serializeSettings(settings));
 }
 
-export function loadNoteHistory(): Note[] {
+export function loadNoteHistory(): Sample[] {
   const s = localStorage.getItem(LocalStorageKey.NoteHistory);
   if (s === null) {
     return [];
   }
 
-  try {
-    const parsed = JSON.parse(s);
-    if (isValidNoteList(parsed)) {
-      return parsed;
-    }
-  } catch {}
-
-  return [];
+  const possiblyUndefinedNoteHistory = deserializeNoteHistory(s);
+  if (possiblyUndefinedNoteHistory !== undefined) {
+    return possiblyUndefinedNoteHistory;
+  } else {
+    return [];
+  }
 }
 
-function isValidNoteList(x: unknown): x is Note[] {
-  return Array.isArray(x) && x.every(isNote);
-}
-
-function isNote(x: unknown): x is Note {
-  return "number" === typeof Note[x as any];
-}
-
-export function saveNoteHistory(history: Note[]) {
-  const s = JSON.stringify(history);
-  localStorage.setItem(LocalStorageKey.NoteHistory, s);
+export function saveNoteHistory(history: Sample[]) {
+  localStorage.setItem(
+    LocalStorageKey.NoteHistory,
+    serializeNoteHistory(history)
+  );
 }

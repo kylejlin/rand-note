@@ -2,56 +2,77 @@
 
 import {
   ALL_NATURALS,
-  ALL_NOTES,
   alternativeName,
   areEqualAccordingTo,
-  EquivalenceRelation,
+  SampleEquivalenceRelation,
   flatOfNatural,
   Modification,
   modification,
   natural,
   sharpOfNatural,
+  ALL_SAMPLES,
 } from "./businessLogic";
 
 test("alternativeName is involutive", () => {
-  for (const note of ALL_NOTES) {
-    expect(alternativeName(alternativeName(note))).toBe(note);
+  for (const sample of ALL_SAMPLES) {
+    expect(alternativeName(alternativeName(sample.note))).toBe(sample.note);
   }
 });
 
-test("EquivalenceRelation.ReflexiveOnly spec", () => {
-  for (const a of ALL_NOTES) {
-    for (const b of ALL_NOTES) {
-      expect(areEqualAccordingTo(EquivalenceRelation.ReflexiveOnly, a, b)).toBe(
-        a === b
-      );
+test("EquivalenceRelation.ByNameModuloOctave spec", () => {
+  for (const a of ALL_SAMPLES) {
+    for (const b of ALL_SAMPLES) {
+      expect(
+        areEqualAccordingTo(SampleEquivalenceRelation.ByNameModuloOctave, a, b)
+      ).toBe(a.note === b.note);
     }
   }
 });
 
-test("EquivalenceRelation.ByPitch spec", () => {
-  for (const a of ALL_NOTES) {
-    for (const b of ALL_NOTES) {
-      expect(areEqualAccordingTo(EquivalenceRelation.ByPitch, a, b)).toBe(
-        a === b || a === alternativeName(b)
-      );
+test("EquivalenceRelation.ByPitchModuloOctave spec", () => {
+  for (const a of ALL_SAMPLES) {
+    for (const b of ALL_SAMPLES) {
+      expect(
+        areEqualAccordingTo(SampleEquivalenceRelation.ByPitchModuloOctave, a, b)
+      ).toBe(a.note === b.note || a.note === alternativeName(b.note));
     }
   }
 });
 
 test("EquivalenceRelation.ByLetter spec", () => {
-  for (const a of ALL_NOTES) {
-    for (const b of ALL_NOTES) {
-      expect(areEqualAccordingTo(EquivalenceRelation.ByLetter, a, b)).toBe(
-        natural(a) === natural(b)
+  for (const a of ALL_SAMPLES) {
+    for (const b of ALL_SAMPLES) {
+      expect(
+        areEqualAccordingTo(SampleEquivalenceRelation.ByLetter, a, b)
+      ).toBe(natural(a.note) === natural(b.note));
+    }
+  }
+});
+
+test("EquivalenceRelation.ByPitch spec", () => {
+  for (const a of ALL_SAMPLES) {
+    for (const b of ALL_SAMPLES) {
+      expect(areEqualAccordingTo(SampleEquivalenceRelation.ByPitch, a, b)).toBe(
+        a.pitch === b.pitch
       );
     }
   }
 });
 
+test("EquivalenceRelation.Reflexive spec", () => {
+  for (const a of ALL_SAMPLES) {
+    for (const b of ALL_SAMPLES) {
+      expect(
+        areEqualAccordingTo(SampleEquivalenceRelation.Reflexive, a, b)
+      ).toBe(a.note === b.note && a.pitch === b.pitch);
+    }
+  }
+});
+
 test("sharpOfNatural is complete", () => {
-  for (const note of ALL_NOTES) {
+  for (const sample of ALL_SAMPLES) {
     for (const nat of ALL_NATURALS) {
+      const { note } = sample;
       if (nat === natural(note) && modification(note) === Modification.Sharp) {
         expect(sharpOfNatural(nat)).toBe(note);
       }
@@ -60,8 +81,9 @@ test("sharpOfNatural is complete", () => {
 });
 
 test("sharpOfNatural is sound", () => {
-  for (const note of ALL_NOTES) {
+  for (const sample of ALL_SAMPLES) {
     for (const nat of ALL_NATURALS) {
+      const { note } = sample;
       if (sharpOfNatural(nat) === note) {
         expect(natural(note)).toBe(nat);
         expect(modification(note)).toBe(Modification.Sharp);
@@ -71,8 +93,9 @@ test("sharpOfNatural is sound", () => {
 });
 
 test("flatOfNatural is complete", () => {
-  for (const note of ALL_NOTES) {
+  for (const sample of ALL_SAMPLES) {
     for (const nat of ALL_NATURALS) {
+      const { note } = sample;
       if (nat === natural(note) && modification(note) === Modification.Flat) {
         expect(flatOfNatural(nat)).toBe(note);
       }
@@ -81,8 +104,9 @@ test("flatOfNatural is complete", () => {
 });
 
 test("flatOfNatural is sound", () => {
-  for (const note of ALL_NOTES) {
+  for (const sample of ALL_SAMPLES) {
     for (const nat of ALL_NATURALS) {
+      const { note } = sample;
       if (flatOfNatural(nat) === note) {
         expect(natural(note)).toBe(nat);
         expect(modification(note)).toBe(Modification.Flat);

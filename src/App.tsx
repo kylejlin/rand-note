@@ -3,11 +3,15 @@ import "./App.css";
 import {
   State,
   Note,
-  getPossibleNextNotes,
+  getPool,
   noteStrings,
-  getRandomNextNote,
+  getSample,
   Settings,
-  EquivalenceRelation,
+  SampleEquivalenceRelation,
+  NoteDisplayStyle as SampleDisplayStyle,
+  sampleEqRelToNoteEqRel,
+  doesDisplayPitch,
+  isOctaveSensitive,
 } from "./businessLogic";
 import {
   loadSettings,
@@ -33,8 +37,10 @@ export default class App extends React.Component<{}, State> {
     this.onCloseSettingsClick = this.onCloseSettingsClick.bind(this);
     this.onNaturalsOnlyChange = this.onNaturalsOnlyChange.bind(this);
     this.onAllowRepeatsChange = this.onAllowRepeatsChange.bind(this);
-    this.onNoteEquivalenceRelationChange =
-      this.onNoteEquivalenceRelationChange.bind(this);
+    this.onSampleDisplayStyleChange =
+      this.onSampleDisplayStyleChange.bind(this);
+    this.onSampleEquivalenceRelationChange =
+      this.onSampleEquivalenceRelationChange.bind(this);
     this.onDisplayEquivalentNotesChange =
       this.onDisplayEquivalentNotesChange.bind(this);
 
@@ -52,6 +58,12 @@ export default class App extends React.Component<{}, State> {
   }
 
   renderSettingsPage(): React.ReactElement {
+    const octaveSensitive = isOctaveSensitive(
+      this.state.settings.equivalenceRelation
+    );
+    const displaysPitch = doesDisplayPitch(
+      this.state.settings.sampleDisplayStyle
+    );
     return (
       <div className="App">
         <section>
@@ -83,17 +95,63 @@ export default class App extends React.Component<{}, State> {
             Display equivalent notes
           </label>
           <label className="Setting Setting--dropdown">
-            Note equivalence relation
+            Display style
+            <select
+              value={this.state.settings.sampleDisplayStyle}
+              onChange={this.onSampleDisplayStyleChange}
+            >
+              <option
+                value={SampleDisplayStyle.Letters}
+                disabled={octaveSensitive}
+              >
+                Letters
+              </option>
+              <option value={SampleDisplayStyle.Staff}>Staff</option>
+              <option value={SampleDisplayStyle.StaffAndLetters}>
+                Staff and letters
+              </option>
+            </select>
+            {octaveSensitive && (
+              <p>
+                (To enable the first option, set your equivalence relation to
+                any non-octave-sensitive relation)
+              </p>
+            )}
+          </label>
+          <label className="Setting Setting--dropdown">
+            Sample equivalence relation
             <select
               value={this.state.settings.equivalenceRelation}
-              onChange={this.onNoteEquivalenceRelationChange}
+              onChange={this.onSampleEquivalenceRelationChange}
             >
-              <option value={EquivalenceRelation.ReflexiveOnly}>
-                Reflexive only (default)
+              <option value={SampleEquivalenceRelation.ByNameModuloOctave}>
+                By name modulo octave (default)
               </option>
-              <option value={EquivalenceRelation.ByPitch}>By pitch</option>
-              <option value={EquivalenceRelation.ByLetter}>By letter</option>
+              <option value={SampleEquivalenceRelation.ByPitchModuloOctave}>
+                By pitch modulo octave
+              </option>
+              <option value={SampleEquivalenceRelation.ByLetter}>
+                By letter
+              </option>
+              <option
+                value={SampleEquivalenceRelation.ByPitch}
+                disabled={!displaysPitch}
+              >
+                By pitch (octave sensitive)
+              </option>
+              <option
+                value={SampleEquivalenceRelation.Reflexive}
+                disabled={!displaysPitch}
+              >
+                Reflexive (i.e., by pitch and name, octave sensitive)
+              </option>
             </select>
+            {!displaysPitch && (
+              <p>
+                (To enable the last two options, set your Display Style to
+                "Staff" or "Staff and Letters")
+              </p>
+            )}
           </label>
         </section>
       </div>
@@ -112,12 +170,24 @@ export default class App extends React.Component<{}, State> {
     this.updateSetting("allowRepeats", event.target.checked);
   }
 
-  onNoteEquivalenceRelationChange(event: React.ChangeEvent<HTMLSelectElement>) {
+  onSampleDisplayStyleChange(event: React.ChangeEvent<HTMLSelectElement>) {
     const n = parseInt(event.target.value, 10);
-    if (n in EquivalenceRelation) {
+    if (n in SampleDisplayStyle) {
+      this.updateSetting(
+        "sampleDisplayStyle",
+        n as unknown as SampleDisplayStyle
+      );
+    }
+  }
+
+  onSampleEquivalenceRelationChange(
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) {
+    const n = parseInt(event.target.value, 10);
+    if (n in SampleEquivalenceRelation) {
       this.updateSetting(
         "equivalenceRelation",
-        n as unknown as EquivalenceRelation
+        n as unknown as SampleEquivalenceRelation
       );
     }
   }
@@ -139,15 +209,14 @@ export default class App extends React.Component<{}, State> {
 
   renderNotePage(): React.ReactElement {
     const currentNote: Note | undefined =
-      this.state.history[this.state.history.length - 1];
+      this.state.history[this.state.history.length - 1]?.note;
     const { equivalenceRelation, displayEquivalentNotes } = this.state.settings;
 
     return (
       <div
         className={
           "App" +
-          (getPossibleNextNotes(this.state.history, this.state.settings)
-            .length === 0
+          (getPool(this.state.history, this.state.settings).length === 0
             ? " LastNote"
             : "")
         }
@@ -157,27 +226,38 @@ export default class App extends React.Component<{}, State> {
           <button onClick={this.onOpenSettingsClick}>Settings</button>
           <button onClick={this.onClearHistoryClick}>Reset</button>
         </section>
-        <section>
-          <h2>Current note</h2>
-          {currentNote !== undefined ? (
-            <div className="CurrentNote">
-              {noteStrings(
-                currentNote,
-                equivalenceRelation,
-                displayEquivalentNotes
+        {this.state.settings.sampleDisplayStyle ===
+        SampleDisplayStyle.Letters ? (
+          <>
+            <section>
+              <h2>Current note</h2>
+              {currentNote !== undefined ? (
+                <div className="CurrentNote">
+                  {noteStrings(
+                    currentNote,
+                    sampleEqRelToNoteEqRel(equivalenceRelation),
+                    displayEquivalentNotes
+                  )}
+                </div>
+              ) : (
+                <div>Tap to generate</div>
               )}
-            </div>
-          ) : (
-            <div>Tap to generate</div>
-          )}
-        </section>
-        <section>
-          {this.state.history.map((note, i) => (
-            <div className="HistoryNote" key={i}>
-              {noteStrings(note, equivalenceRelation, displayEquivalentNotes)}
-            </div>
-          ))}
-        </section>
+            </section>
+            <section>
+              {this.state.history.map((sample, i) => (
+                <div className="HistoryNote" key={i}>
+                  {noteStrings(
+                    sample.note,
+                    sampleEqRelToNoteEqRel(equivalenceRelation),
+                    displayEquivalentNotes
+                  )}
+                </div>
+              ))}
+            </section>
+          </>
+        ) : (
+          <section>TODO</section>
+        )}
       </div>
     );
   }
@@ -197,11 +277,11 @@ export default class App extends React.Component<{}, State> {
     }
 
     this.setState((prevState) => {
-      const nextNote = getRandomNextNote(prevState.history, prevState.settings);
+      const sample = getSample(prevState.history, prevState.settings);
       const newHistory =
-        nextNote === undefined
+        sample === undefined
           ? prevState.history
-          : prevState.history.concat([nextNote]);
+          : prevState.history.concat([sample]);
       saveNoteHistory(newHistory);
       return { ...prevState, history: newHistory };
     });
