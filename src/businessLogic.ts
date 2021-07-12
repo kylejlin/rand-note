@@ -1,36 +1,22 @@
 export interface State {
   isSettingsOpen: boolean;
   settings: Settings;
-  history: Sample[];
+  history: Note[];
 }
 
 export interface Settings {
   naturalsOnly: boolean;
   allowRepeats: boolean;
-  equivalenceRelation: SampleEquivalenceRelation;
-  displayEquivalentNotes: boolean;
+  equivalenceRelation: NoteEquivalenceRelation;
+  displayEquivalentNoteNames: boolean;
   sampleDisplayStyle: NoteDisplayStyle;
   maxPitch: Pitch;
 }
 
-export enum SampleEquivalenceRelation {
-  /**
-   * Definition: Two samples are equal iff their "names" (e.g., `ASharp`) are equal.
-   *
-   * This means:
-   * - `ASharp` and `BFlat` are **not** equal
-   * - We don't care if the pitches are in the same octave (e.g., E2 equals E4)
-   */
+export enum NoteEquivalenceRelation {
+  /** "modulo octave" means the octaves won't affect equality (e.g., E2 = E4) */
   ByNameModuloOctave = 0,
-
-  /**
-   * Definition: Two samples are equal iff when we make their octaves the same, their
-   * pitches are equal.
-   *
-   * This means:
-   * - `ASharp` and `BFlat` are equal
-   * - Octave doesn't matter (e.g., A Sharp 2 equals B Flat 4)
-   */
+  /** "modulo octave" means the octaves won't affect equality (e.g., E2 = E4) */
   ByPitchModuloOctave = 1,
 
   /**
@@ -45,61 +31,45 @@ export enum SampleEquivalenceRelation {
    */
   ByLetter = 2,
 
-  /**
-   * Definition: Two samples are equal iff they have the same pitch.
-   *
-   * This means:
-   * - A Sharp 2 equals B Flat 2
-   * - A Sharp 2 does **not** equal B Flat 3 (different octaves)
-   */
   ByPitch = 3,
-
-  /**
-   * Definition: Two samples are equal iff they have the same pitch and name.
-   *
-   * This means:
-   * - A Sharp 2 equals A Sharp 2
-   * - A Sharp 2 does **not** B Flat 2 (different names)
-   * - A Sharp 2 does **not** equal B Flat 3 (different octaves)
-   */
-  Reflexive = 4,
+  ByNameAndPitch = 4,
 }
 
-export function isOctaveSensitive(er: SampleEquivalenceRelation): boolean {
+export function isOctaveSensitive(er: NoteEquivalenceRelation): boolean {
   switch (er) {
-    case SampleEquivalenceRelation.ByNameModuloOctave:
+    case NoteEquivalenceRelation.ByNameModuloOctave:
       return false;
-    case SampleEquivalenceRelation.ByPitchModuloOctave:
+    case NoteEquivalenceRelation.ByPitchModuloOctave:
       return false;
-    case SampleEquivalenceRelation.ByLetter:
+    case NoteEquivalenceRelation.ByLetter:
       return false;
-    case SampleEquivalenceRelation.ByPitch:
+    case NoteEquivalenceRelation.ByPitch:
       return true;
-    case SampleEquivalenceRelation.Reflexive:
+    case NoteEquivalenceRelation.ByNameAndPitch:
       return true;
   }
 }
 
-enum NoteEquivalenceRelation {
+enum NoteNameEquivalenceRelation {
   Reflexive,
   ByPitch,
   ByLetter,
 }
 
-export function sampleEqRelToNoteEqRel(
-  er: SampleEquivalenceRelation
-): NoteEquivalenceRelation {
+export function noteEqRelToNoteNameEqRel(
+  er: NoteEquivalenceRelation
+): NoteNameEquivalenceRelation {
   switch (er) {
-    case SampleEquivalenceRelation.ByNameModuloOctave:
-      return NoteEquivalenceRelation.Reflexive;
-    case SampleEquivalenceRelation.ByPitchModuloOctave:
-      return NoteEquivalenceRelation.ByPitch;
-    case SampleEquivalenceRelation.ByLetter:
-      return NoteEquivalenceRelation.ByLetter;
-    case SampleEquivalenceRelation.ByPitch:
-      return NoteEquivalenceRelation.ByPitch;
-    case SampleEquivalenceRelation.Reflexive:
-      return NoteEquivalenceRelation.Reflexive;
+    case NoteEquivalenceRelation.ByNameModuloOctave:
+      return NoteNameEquivalenceRelation.Reflexive;
+    case NoteEquivalenceRelation.ByPitchModuloOctave:
+      return NoteNameEquivalenceRelation.ByPitch;
+    case NoteEquivalenceRelation.ByLetter:
+      return NoteNameEquivalenceRelation.ByLetter;
+    case NoteEquivalenceRelation.ByPitch:
+      return NoteNameEquivalenceRelation.ByPitch;
+    case NoteEquivalenceRelation.ByNameAndPitch:
+      return NoteNameEquivalenceRelation.Reflexive;
   }
 }
 
@@ -139,10 +109,10 @@ export enum Pitch {
   A2,
   AB2,
   B2,
-  C2,
-  CD2,
-  D2,
-  DE2,
+  C3,
+  CD3,
+  D3,
+  DE3,
   E3,
   F3,
   FG3,
@@ -151,10 +121,10 @@ export enum Pitch {
   A3,
   AB3,
   B3,
-  C3,
-  CD3,
-  D3,
-  DE3,
+  C4,
+  CD4,
+  D4,
+  DE4,
   E4,
   F4,
   FG4,
@@ -163,10 +133,10 @@ export enum Pitch {
   A4,
   AB4,
   B4,
-  C4,
-  CD4,
-  D4,
-  DE4,
+  C5,
+  CD5,
+  D5,
+  DE5,
   E5,
   F5,
   FG5,
@@ -175,22 +145,11 @@ export enum Pitch {
   A5,
   AB5,
   B5,
-  C5,
-  CD5,
-  D5,
-  DE5,
-  E6,
-  F6,
-  FG6,
-  G6,
-  GA6,
-  A6,
-  AB6,
-  B6,
   C6,
   CD6,
   D6,
   DE6,
+  E6,
 }
 
 const ALL_PITCHES: readonly Pitch[] = [
@@ -202,10 +161,10 @@ const ALL_PITCHES: readonly Pitch[] = [
   Pitch.A2,
   Pitch.AB2,
   Pitch.B2,
-  Pitch.C2,
-  Pitch.CD2,
-  Pitch.D2,
-  Pitch.DE2,
+  Pitch.C3,
+  Pitch.CD3,
+  Pitch.D3,
+  Pitch.DE3,
   Pitch.E3,
   Pitch.F3,
   Pitch.FG3,
@@ -214,10 +173,10 @@ const ALL_PITCHES: readonly Pitch[] = [
   Pitch.A3,
   Pitch.AB3,
   Pitch.B3,
-  Pitch.C3,
-  Pitch.CD3,
-  Pitch.D3,
-  Pitch.DE3,
+  Pitch.C4,
+  Pitch.CD4,
+  Pitch.D4,
+  Pitch.DE4,
   Pitch.E4,
   Pitch.F4,
   Pitch.FG4,
@@ -226,10 +185,10 @@ const ALL_PITCHES: readonly Pitch[] = [
   Pitch.A4,
   Pitch.AB4,
   Pitch.B4,
-  Pitch.C4,
-  Pitch.CD4,
-  Pitch.D4,
-  Pitch.DE4,
+  Pitch.C5,
+  Pitch.CD5,
+  Pitch.D5,
+  Pitch.DE5,
   Pitch.E5,
   Pitch.F5,
   Pitch.FG5,
@@ -238,50 +197,28 @@ const ALL_PITCHES: readonly Pitch[] = [
   Pitch.A5,
   Pitch.AB5,
   Pitch.B5,
-  Pitch.C5,
-  Pitch.CD5,
-  Pitch.D5,
-  Pitch.DE5,
-  Pitch.E6,
-  Pitch.F6,
-  Pitch.FG6,
-  Pitch.G6,
-  Pitch.GA6,
-  Pitch.A6,
-  Pitch.AB6,
-  Pitch.B6,
   Pitch.C6,
   Pitch.CD6,
   Pitch.D6,
   Pitch.DE6,
+  Pitch.E6,
 ];
 
 export const DEFAULT_SETTINGS: Settings = {
   naturalsOnly: true,
   allowRepeats: false,
-  equivalenceRelation: SampleEquivalenceRelation.ByNameModuloOctave,
-  displayEquivalentNotes: true,
+  equivalenceRelation: NoteEquivalenceRelation.ByNameModuloOctave,
+  displayEquivalentNoteNames: true,
   sampleDisplayStyle: NoteDisplayStyle.StaffAndLetters,
   maxPitch: Pitch.E5,
 };
 
-/**
- * I call this `Sample` instead of something like `NoteAndPitch`,
- * because it's much more succinct.
- *
- * In case you're wondering why I chose "sample", of all names,
- * it's because a note-pitch pair is a sample in
- * the statistical/probability-theoretic sense.
- * Remember, the primary purpose of this app is to randomly
- * select note-pitch pairs from a pool of possible
- * pairs, so the selected note-pitch pairs would be called samples.
- */
-export interface Sample {
-  note: Note;
+export interface Note {
+  name: NoteName;
   pitch: Pitch;
 }
 
-export enum Note {
+export enum NoteName {
   A,
   ASharp,
   BFlat,
@@ -301,35 +238,35 @@ export enum Note {
   AFlat,
 }
 
-const ALL_NOTES: readonly Note[] = [
-  Note.A,
-  Note.ASharp,
-  Note.BFlat,
-  Note.B,
-  Note.C,
-  Note.CSharp,
-  Note.DFlat,
-  Note.D,
-  Note.DSharp,
-  Note.EFlat,
-  Note.E,
-  Note.F,
-  Note.FSharp,
-  Note.GFlat,
-  Note.G,
-  Note.GSharp,
-  Note.AFlat,
+const ALL_NOTE_NAMES: readonly NoteName[] = [
+  NoteName.A,
+  NoteName.ASharp,
+  NoteName.BFlat,
+  NoteName.B,
+  NoteName.C,
+  NoteName.CSharp,
+  NoteName.DFlat,
+  NoteName.D,
+  NoteName.DSharp,
+  NoteName.EFlat,
+  NoteName.E,
+  NoteName.F,
+  NoteName.FSharp,
+  NoteName.GFlat,
+  NoteName.G,
+  NoteName.GSharp,
+  NoteName.AFlat,
 ];
 
-export const ALL_SAMPLES: readonly Sample[] = cartesianProduct(
+export const ALL_NOTES: readonly Note[] = cartesianProduct(
   buildSample,
-  ALL_NOTES,
+  ALL_NOTE_NAMES,
   ALL_PITCHES
 )
-  // We can't simply define the set of all samples as the Cartesian product,
-  // since that would include some nonsensical samples (e.g., `{ note: Note.A, pitch: Pitch.C2 }`).
-  // Instead, we only include samples that have notes that agree with their pitch.
-  .filter((sample) => pitchToNotes(sample.pitch).includes(sample.note));
+  // We can't simply define the set of all notes as the Cartesian product,
+  // since that would include some nonsensical samples (e.g., `{ note: NoteName.A, pitch: Pitch.C2 }`).
+  // Instead, we only include samples that have names that agree with their pitch.
+  .filter((sample) => pitchToNoteNames(sample.pitch).includes(sample.name));
 
 function cartesianProduct<T, U, R>(
   f: (x: T, y: U) => R,
@@ -349,132 +286,110 @@ function cartesianProduct<T, U, R>(
   return out;
 }
 
-function buildSample(note: Note, pitch: Pitch): Sample {
-  return { note, pitch };
+function buildSample(note: NoteName, pitch: Pitch): Note {
+  return { name: note, pitch };
 }
 
-function pitchToNotes(pitch: Pitch): Note[] {
+function pitchToNoteNames(pitch: Pitch): NoteName[] {
   switch (pitch) {
     case Pitch.E2:
-      return [Note.E];
+      return [NoteName.E];
     case Pitch.F2:
-      return [Note.F];
+      return [NoteName.F];
     case Pitch.FG2:
-      return [Note.FSharp, Note.GFlat];
+      return [NoteName.FSharp, NoteName.GFlat];
     case Pitch.G2:
-      return [Note.G];
+      return [NoteName.G];
     case Pitch.GA2:
-      return [Note.GSharp, Note.AFlat];
+      return [NoteName.GSharp, NoteName.AFlat];
     case Pitch.A2:
-      return [Note.A];
+      return [NoteName.A];
     case Pitch.AB2:
-      return [Note.ASharp, Note.BFlat];
+      return [NoteName.ASharp, NoteName.BFlat];
     case Pitch.B2:
-      return [Note.B];
-    case Pitch.C2:
-      return [Note.C];
-    case Pitch.CD2:
-      return [Note.CSharp, Note.DFlat];
-    case Pitch.D2:
-      return [Note.D];
-    case Pitch.DE2:
-      return [Note.DSharp, Note.EFlat];
-    case Pitch.E3:
-      return [Note.E];
-    case Pitch.F3:
-      return [Note.F];
-    case Pitch.FG3:
-      return [Note.FSharp, Note.GFlat];
-    case Pitch.G3:
-      return [Note.G];
-    case Pitch.GA3:
-      return [Note.GSharp, Note.AFlat];
-    case Pitch.A3:
-      return [Note.A];
-    case Pitch.AB3:
-      return [Note.ASharp, Note.BFlat];
-    case Pitch.B3:
-      return [Note.B];
+      return [NoteName.B];
     case Pitch.C3:
-      return [Note.C];
+      return [NoteName.C];
     case Pitch.CD3:
-      return [Note.CSharp, Note.DFlat];
+      return [NoteName.CSharp, NoteName.DFlat];
     case Pitch.D3:
-      return [Note.D];
+      return [NoteName.D];
     case Pitch.DE3:
-      return [Note.DSharp, Note.EFlat];
-    case Pitch.E4:
-      return [Note.E];
-    case Pitch.F4:
-      return [Note.F];
-    case Pitch.FG4:
-      return [Note.FSharp, Note.GFlat];
-    case Pitch.G4:
-      return [Note.G];
-    case Pitch.GA4:
-      return [Note.GSharp, Note.AFlat];
-    case Pitch.A4:
-      return [Note.A];
-    case Pitch.AB4:
-      return [Note.ASharp, Note.BFlat];
-    case Pitch.B4:
-      return [Note.B];
+      return [NoteName.DSharp, NoteName.EFlat];
+    case Pitch.E3:
+      return [NoteName.E];
+    case Pitch.F3:
+      return [NoteName.F];
+    case Pitch.FG3:
+      return [NoteName.FSharp, NoteName.GFlat];
+    case Pitch.G3:
+      return [NoteName.G];
+    case Pitch.GA3:
+      return [NoteName.GSharp, NoteName.AFlat];
+    case Pitch.A3:
+      return [NoteName.A];
+    case Pitch.AB3:
+      return [NoteName.ASharp, NoteName.BFlat];
+    case Pitch.B3:
+      return [NoteName.B];
     case Pitch.C4:
-      return [Note.C];
+      return [NoteName.C];
     case Pitch.CD4:
-      return [Note.CSharp, Note.DFlat];
+      return [NoteName.CSharp, NoteName.DFlat];
     case Pitch.D4:
-      return [Note.D];
+      return [NoteName.D];
     case Pitch.DE4:
-      return [Note.DSharp, Note.EFlat];
-    case Pitch.E5:
-      return [Note.E];
-    case Pitch.F5:
-      return [Note.F];
-    case Pitch.FG5:
-      return [Note.FSharp, Note.GFlat];
-    case Pitch.G5:
-      return [Note.G];
-    case Pitch.GA5:
-      return [Note.GSharp, Note.AFlat];
-    case Pitch.A5:
-      return [Note.A];
-    case Pitch.AB5:
-      return [Note.ASharp, Note.BFlat];
-    case Pitch.B5:
-      return [Note.B];
+      return [NoteName.DSharp, NoteName.EFlat];
+    case Pitch.E4:
+      return [NoteName.E];
+    case Pitch.F4:
+      return [NoteName.F];
+    case Pitch.FG4:
+      return [NoteName.FSharp, NoteName.GFlat];
+    case Pitch.G4:
+      return [NoteName.G];
+    case Pitch.GA4:
+      return [NoteName.GSharp, NoteName.AFlat];
+    case Pitch.A4:
+      return [NoteName.A];
+    case Pitch.AB4:
+      return [NoteName.ASharp, NoteName.BFlat];
+    case Pitch.B4:
+      return [NoteName.B];
     case Pitch.C5:
-      return [Note.C];
+      return [NoteName.C];
     case Pitch.CD5:
-      return [Note.CSharp, Note.DFlat];
+      return [NoteName.CSharp, NoteName.DFlat];
     case Pitch.D5:
-      return [Note.D];
+      return [NoteName.D];
     case Pitch.DE5:
-      return [Note.DSharp, Note.EFlat];
-    case Pitch.E6:
-      return [Note.E];
-    case Pitch.F6:
-      return [Note.F];
-    case Pitch.FG6:
-      return [Note.FSharp, Note.GFlat];
-    case Pitch.G6:
-      return [Note.G];
-    case Pitch.GA6:
-      return [Note.GSharp, Note.AFlat];
-    case Pitch.A6:
-      return [Note.A];
-    case Pitch.AB6:
-      return [Note.ASharp, Note.BFlat];
-    case Pitch.B6:
-      return [Note.B];
+      return [NoteName.DSharp, NoteName.EFlat];
+    case Pitch.E5:
+      return [NoteName.E];
+    case Pitch.F5:
+      return [NoteName.F];
+    case Pitch.FG5:
+      return [NoteName.FSharp, NoteName.GFlat];
+    case Pitch.G5:
+      return [NoteName.G];
+    case Pitch.GA5:
+      return [NoteName.GSharp, NoteName.AFlat];
+    case Pitch.A5:
+      return [NoteName.A];
+    case Pitch.AB5:
+      return [NoteName.ASharp, NoteName.BFlat];
+    case Pitch.B5:
+      return [NoteName.B];
     case Pitch.C6:
-      return [Note.C];
+      return [NoteName.C];
     case Pitch.CD6:
-      return [Note.CSharp, Note.DFlat];
+      return [NoteName.CSharp, NoteName.DFlat];
     case Pitch.D6:
-      return [Note.D];
+      return [NoteName.D];
     case Pitch.DE6:
-      return [Note.DSharp, Note.EFlat];
+      return [NoteName.DSharp, NoteName.EFlat];
+    case Pitch.E6:
+      return [NoteName.E];
   }
 }
 
@@ -504,145 +419,150 @@ export enum Modification {
   Flat,
 }
 
-export function natural(note: Note): Natural {
-  switch (note) {
-    case Note.A:
+export function natural(name: NoteName): Natural {
+  switch (name) {
+    case NoteName.A:
       return Natural.A;
-    case Note.ASharp:
+    case NoteName.ASharp:
       return Natural.A;
-    case Note.AFlat:
+    case NoteName.AFlat:
       return Natural.A;
 
-    case Note.B:
+    case NoteName.B:
       return Natural.B;
-    case Note.BFlat:
+    case NoteName.BFlat:
       return Natural.B;
 
-    case Note.C:
+    case NoteName.C:
       return Natural.C;
-    case Note.CSharp:
+    case NoteName.CSharp:
       return Natural.C;
 
-    case Note.DFlat:
+    case NoteName.DFlat:
       return Natural.D;
-    case Note.D:
+    case NoteName.D:
       return Natural.D;
-    case Note.DSharp:
+    case NoteName.DSharp:
       return Natural.D;
 
-    case Note.EFlat:
+    case NoteName.EFlat:
       return Natural.E;
-    case Note.E:
+    case NoteName.E:
       return Natural.E;
 
-    case Note.F:
+    case NoteName.F:
       return Natural.F;
-    case Note.FSharp:
+    case NoteName.FSharp:
       return Natural.F;
 
-    case Note.GFlat:
+    case NoteName.GFlat:
       return Natural.G;
-    case Note.G:
+    case NoteName.G:
       return Natural.G;
-    case Note.GSharp:
+    case NoteName.GSharp:
       return Natural.G;
   }
 }
 
-export function modification(note: Note): Modification {
-  switch (note) {
-    case Note.A:
-    case Note.B:
-    case Note.C:
-    case Note.D:
-    case Note.E:
-    case Note.F:
-    case Note.G:
+export function modification(name: NoteName): Modification {
+  switch (name) {
+    case NoteName.A:
+    case NoteName.B:
+    case NoteName.C:
+    case NoteName.D:
+    case NoteName.E:
+    case NoteName.F:
+    case NoteName.G:
       return Modification.None;
 
-    case Note.ASharp:
-    case Note.CSharp:
-    case Note.DSharp:
-    case Note.FSharp:
-    case Note.GSharp:
+    case NoteName.ASharp:
+    case NoteName.CSharp:
+    case NoteName.DSharp:
+    case NoteName.FSharp:
+    case NoteName.GSharp:
       return Modification.Sharp;
 
-    case Note.AFlat:
-    case Note.BFlat:
-    case Note.DFlat:
-    case Note.EFlat:
-    case Note.GFlat:
+    case NoteName.AFlat:
+    case NoteName.BFlat:
+    case NoteName.DFlat:
+    case NoteName.EFlat:
+    case NoteName.GFlat:
       return Modification.Flat;
   }
 }
 
 /**
-    * Non-natural notes have two names (e.g., C sharp and D flat).
-    * If the provided note is not natural, the other name will be returned.
-    * If it is natural, the original note will be returned.
-  
-    * ## Example
-    * ```typescript
-    * assert(Note.DFlat === alternativeName(Note.CSharp));
-    * assert(Note.C === alternativeName(Note.C));
-    * ```
-    */
-export function alternativeName(note: Note): Note {
-  switch (note) {
-    case Note.AFlat:
-      return Note.GSharp;
-    case Note.ASharp:
-      return Note.BFlat;
+  * Non-natural notes have two names (e.g., C sharp and D flat).
+  * If the provided note is not natural, the other name will be returned.
+  * If it is natural, the original note will be returned.
 
-    case Note.BFlat:
-      return Note.ASharp;
+  * ## Example
+  * ```typescript
+  * assert(NoteName.DFlat === alternativeName(NoteName.CSharp));
+  * assert(NoteName.C === alternativeName(NoteName.C));
+  * ```
+  */
+export function alternativeName(name: NoteName): NoteName {
+  switch (name) {
+    case NoteName.AFlat:
+      return NoteName.GSharp;
+    case NoteName.ASharp:
+      return NoteName.BFlat;
 
-    case Note.CSharp:
-      return Note.DFlat;
+    case NoteName.BFlat:
+      return NoteName.ASharp;
 
-    case Note.DFlat:
-      return Note.CSharp;
-    case Note.DSharp:
-      return Note.EFlat;
+    case NoteName.CSharp:
+      return NoteName.DFlat;
 
-    case Note.EFlat:
-      return Note.DSharp;
+    case NoteName.DFlat:
+      return NoteName.CSharp;
+    case NoteName.DSharp:
+      return NoteName.EFlat;
 
-    case Note.FSharp:
-      return Note.GFlat;
+    case NoteName.EFlat:
+      return NoteName.DSharp;
 
-    case Note.GFlat:
-      return Note.FSharp;
-    case Note.GSharp:
-      return Note.AFlat;
+    case NoteName.FSharp:
+      return NoteName.GFlat;
 
-    case Note.A:
-    case Note.B:
-    case Note.C:
-    case Note.D:
-    case Note.E:
-    case Note.F:
-    case Note.G:
-      return note;
+    case NoteName.GFlat:
+      return NoteName.FSharp;
+    case NoteName.GSharp:
+      return NoteName.AFlat;
+
+    case NoteName.A:
+    case NoteName.B:
+    case NoteName.C:
+    case NoteName.D:
+    case NoteName.E:
+    case NoteName.F:
+    case NoteName.G:
+      return name;
   }
 }
 
-export function noteStrings(
-  note: Note,
-  equivalenceRelation: NoteEquivalenceRelation,
+export function nameStrings(
+  name: NoteName,
+  equivalenceRelation: NoteNameEquivalenceRelation,
   displayEquivalentNotes: boolean
 ): string {
   if (!displayEquivalentNotes) {
-    return noteString(note);
+    return nameString(name);
   }
 
+  /**
+   * To clarify:
+   * The name is "Compare such that [original, nat, sharp, flat]
+   * is ascending".
+   */
   function compareSuchThatOriginalNatSharpFlatIsAscending(
-    a: Note,
-    b: Note
+    a: NoteName,
+    b: NoteName
   ): number {
-    if (a === note) {
+    if (a === name) {
       return -Infinity;
-    } else if (b === note) {
+    } else if (b === name) {
       return Infinity;
     } else {
       const aScore = scoreSuchThatNatLtSharpLtFlat(a);
@@ -652,30 +572,30 @@ export function noteStrings(
   }
 
   switch (equivalenceRelation) {
-    case NoteEquivalenceRelation.Reflexive:
-      return noteString(note);
-    case NoteEquivalenceRelation.ByPitch: {
-      const alt = alternativeName(note);
-      if (alt === note) {
-        return noteString(note);
+    case NoteNameEquivalenceRelation.Reflexive:
+      return nameString(name);
+    case NoteNameEquivalenceRelation.ByPitch: {
+      const alt = alternativeName(name);
+      if (alt === name) {
+        return nameString(name);
       } else {
-        return noteString(note) + "/" + noteString(alt);
+        return nameString(name) + "/" + nameString(alt);
       }
     }
-    case NoteEquivalenceRelation.ByLetter: {
-      const nat = natural(note);
+    case NoteNameEquivalenceRelation.ByLetter: {
+      const nat = natural(name);
       const sharp = sharpOfNatural(nat);
       const flat = flatOfNatural(nat);
       const notes = [naturalToNote(nat), sharp, flat]
         .filter(isNotUndefined)
         .sort(compareSuchThatOriginalNatSharpFlatIsAscending);
 
-      return notes.map(noteString).join("/");
+      return notes.map(nameString).join("/");
     }
   }
 }
 
-export function noteString(note: Note): string {
+export function nameString(note: NoteName): string {
   return naturalString(natural(note)) + modificationString(modification(note));
 }
 
@@ -694,64 +614,64 @@ export function modificationString(mod: Modification): string {
   }
 }
 
-export function sharpOfNatural(nat: Natural): undefined | Note {
+export function sharpOfNatural(nat: Natural): undefined | NoteName {
   switch (nat) {
     case Natural.A:
-      return Note.ASharp;
+      return NoteName.ASharp;
     case Natural.B:
       return undefined;
     case Natural.C:
-      return Note.CSharp;
+      return NoteName.CSharp;
     case Natural.D:
-      return Note.DSharp;
+      return NoteName.DSharp;
     case Natural.E:
       return undefined;
     case Natural.F:
-      return Note.FSharp;
+      return NoteName.FSharp;
     case Natural.G:
-      return Note.GSharp;
+      return NoteName.GSharp;
   }
 }
 
-export function flatOfNatural(nat: Natural): undefined | Note {
+export function flatOfNatural(nat: Natural): undefined | NoteName {
   switch (nat) {
     case Natural.A:
-      return Note.AFlat;
+      return NoteName.AFlat;
     case Natural.B:
-      return Note.BFlat;
+      return NoteName.BFlat;
     case Natural.C:
       return undefined;
     case Natural.D:
-      return Note.DFlat;
+      return NoteName.DFlat;
     case Natural.E:
-      return Note.EFlat;
+      return NoteName.EFlat;
     case Natural.F:
       return undefined;
     case Natural.G:
-      return Note.GFlat;
+      return NoteName.GFlat;
   }
 }
 
-export function naturalToNote(nat: Natural): Note {
+export function naturalToNote(nat: Natural): NoteName {
   switch (nat) {
     case Natural.A:
-      return Note.A;
+      return NoteName.A;
     case Natural.B:
-      return Note.B;
+      return NoteName.B;
     case Natural.C:
-      return Note.C;
+      return NoteName.C;
     case Natural.D:
-      return Note.D;
+      return NoteName.D;
     case Natural.E:
-      return Note.E;
+      return NoteName.E;
     case Natural.F:
-      return Note.F;
+      return NoteName.F;
     case Natural.G:
-      return Note.G;
+      return NoteName.G;
   }
 }
 
-export function scoreSuchThatNatLtSharpLtFlat(note: Note): number {
+export function scoreSuchThatNatLtSharpLtFlat(note: NoteName): number {
   switch (modification(note)) {
     case Modification.None:
       return 0;
@@ -770,27 +690,25 @@ export function isNotUndefined<T>(v: T | undefined): v is T {
   }
 }
 
-/**
- * Normally we would name such a function "sample" (as in the verb),
- * but for consistency, we'll name it "getSample" so that "sample" will
- * always refer to a noun (for the scope of this project).
- */
-export function getSample(
-  prev: Sample[],
+export function getRandomNote(
+  prev: Note[],
   settings: Settings
-): undefined | Sample {
-  const possibleNextNotes = getPool(prev, settings);
+): undefined | Note {
+  const possibleNextNotes = getPossibleRandomNextNotes(prev, settings);
   return randomElement(possibleNextNotes);
 }
 
-export function getPool(prev: Sample[], settings: Settings): Sample[] {
-  let possible = ALL_SAMPLES.slice().filter((sample) =>
+export function getPossibleRandomNextNotes(
+  prev: Note[],
+  settings: Settings
+): Note[] {
+  let possible = ALL_NOTES.slice().filter((sample) =>
     isLowerThanOrEqualTo(sample.pitch, settings.maxPitch)
   );
 
   if (settings.naturalsOnly) {
     possible = possible.filter(
-      (sample) => modification(sample.note) === Modification.None
+      (sample) => modification(sample.name) === Modification.None
     );
   }
 
@@ -823,20 +741,219 @@ export function randomElement<T>(arr: T[]): undefined | T {
 }
 
 export function areEqualAccordingTo(
-  rel: SampleEquivalenceRelation,
-  a: Sample,
-  b: Sample
+  rel: NoteEquivalenceRelation,
+  a: Note,
+  b: Note
 ): boolean {
   switch (rel) {
-    case SampleEquivalenceRelation.ByNameModuloOctave:
-      return a.note === b.note;
-    case SampleEquivalenceRelation.ByPitchModuloOctave:
-      return a.note === b.note || a.note === alternativeName(b.note);
-    case SampleEquivalenceRelation.ByLetter:
-      return natural(a.note) === natural(b.note);
-    case SampleEquivalenceRelation.ByPitch:
+    case NoteEquivalenceRelation.ByNameModuloOctave:
+      return a.name === b.name;
+    case NoteEquivalenceRelation.ByPitchModuloOctave:
+      return a.name === b.name || a.name === alternativeName(b.name);
+    case NoteEquivalenceRelation.ByLetter:
+      return natural(a.name) === natural(b.name);
+    case NoteEquivalenceRelation.ByPitch:
       return a.pitch === b.pitch;
-    case SampleEquivalenceRelation.Reflexive:
-      return a.note === b.note && a.pitch === b.pitch;
+    case NoteEquivalenceRelation.ByNameAndPitch:
+      return a.name === b.name && a.pitch === b.pitch;
   }
+}
+
+export function getNotationWithLetters(samples: Note[]): string {
+  return `
+X: 1
+M: 4/4
+L: 1/4
+%%staves {V1}
+V: V1 clef=treble
+[V: V1] ${insertXEveryN(
+    () => "|",
+    4,
+    samples.map((sample) => noteAbcNotation(sample))
+  ).join(" ")} |]
+w:1.~${samples.map((sample) => nameString(sample.name)).join(" ")}
+`;
+}
+
+function insertXEveryN<T>(f: () => T, n: number, src: readonly T[]): T[] {
+  const out = [];
+  for (let i = 0; i < src.length; ++i) {
+    if (i !== 0 && i % n === 0) {
+      out.push(f());
+    }
+    out.push(src[i]);
+  }
+  return out;
+}
+
+function noteAbcNotation(note: Note): string {
+  return noteNameAbcNotation(note.name) + pitchAbcNotation(note.pitch);
+}
+
+function noteNameAbcNotation(name: NoteName): string {
+  switch (name) {
+    case NoteName.A:
+      return "A";
+    case NoteName.ASharp:
+      return "^A";
+    case NoteName.BFlat:
+      return "_B";
+    case NoteName.B:
+      return "B";
+    case NoteName.C:
+      return "C";
+    case NoteName.CSharp:
+      return "^C";
+    case NoteName.DFlat:
+      return "_D";
+    case NoteName.D:
+      return "D";
+    case NoteName.DSharp:
+      return "^D";
+    case NoteName.EFlat:
+      return "_E";
+    case NoteName.E:
+      return "E";
+    case NoteName.F:
+      return "F";
+    case NoteName.FSharp:
+      return "^F";
+    case NoteName.GFlat:
+      return "_G";
+    case NoteName.G:
+      return "G";
+    case NoteName.GSharp:
+      return "^G";
+    case NoteName.AFlat:
+      return "_A";
+  }
+}
+
+function pitchAbcNotation(pitch: Pitch): string {
+  switch (getOctave(pitch)) {
+    case 2:
+      return ",";
+    case 3:
+      return "";
+    case 4:
+      return "'";
+    case 5:
+      return "''";
+    case 6:
+      return "'''";
+  }
+}
+
+function getOctave(pitch: Pitch): 2 | 3 | 4 | 5 | 6 {
+  switch (pitch) {
+    case Pitch.E2:
+      return 2;
+    case Pitch.F2:
+      return 2;
+    case Pitch.FG2:
+      return 2;
+    case Pitch.G2:
+      return 2;
+    case Pitch.GA2:
+      return 2;
+    case Pitch.A2:
+      return 2;
+    case Pitch.AB2:
+      return 2;
+    case Pitch.B2:
+      return 2;
+    case Pitch.C3:
+      return 3;
+    case Pitch.CD3:
+      return 3;
+    case Pitch.D3:
+      return 3;
+    case Pitch.DE3:
+      return 3;
+    case Pitch.E3:
+      return 3;
+    case Pitch.F3:
+      return 3;
+    case Pitch.FG3:
+      return 3;
+    case Pitch.G3:
+      return 3;
+    case Pitch.GA3:
+      return 3;
+    case Pitch.A3:
+      return 3;
+    case Pitch.AB3:
+      return 3;
+    case Pitch.B3:
+      return 3;
+    case Pitch.C4:
+      return 4;
+    case Pitch.CD4:
+      return 4;
+    case Pitch.D4:
+      return 4;
+    case Pitch.DE4:
+      return 4;
+    case Pitch.E4:
+      return 4;
+    case Pitch.F4:
+      return 4;
+    case Pitch.FG4:
+      return 4;
+    case Pitch.G4:
+      return 4;
+    case Pitch.GA4:
+      return 4;
+    case Pitch.A4:
+      return 4;
+    case Pitch.AB4:
+      return 4;
+    case Pitch.B4:
+      return 4;
+    case Pitch.C5:
+      return 5;
+    case Pitch.CD5:
+      return 5;
+    case Pitch.D5:
+      return 5;
+    case Pitch.DE5:
+      return 5;
+    case Pitch.E5:
+      return 5;
+    case Pitch.F5:
+      return 5;
+    case Pitch.FG5:
+      return 5;
+    case Pitch.G5:
+      return 5;
+    case Pitch.GA5:
+      return 5;
+    case Pitch.A5:
+      return 5;
+    case Pitch.AB5:
+      return 5;
+    case Pitch.B5:
+      return 5;
+    case Pitch.C6:
+      return 6;
+    case Pitch.CD6:
+      return 6;
+    case Pitch.D6:
+      return 6;
+    case Pitch.DE6:
+      return 6;
+    case Pitch.E6:
+      return 6;
+  }
+}
+
+export function getNotationWithoutLetters(notes: Note[]): string {
+  return `
+X: 1
+M: 4/4
+L: 1/4
+%%staves {V1}
+V: V1 clef=treble
+[V: V1] (d3 _B =B_A =A2 | _A2 _B=B G2) (cB | d8)        |]
+`;
 }

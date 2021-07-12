@@ -1,10 +1,10 @@
 import {
-  SampleEquivalenceRelation,
+  NoteEquivalenceRelation,
+  NoteName,
   Note,
-  Sample,
   Pitch,
   Settings,
-  NoteDisplayStyle as SampleDisplayStyle,
+  NoteDisplayStyle,
 } from "./businessLogic";
 
 export function deserializeSettings(s: string): undefined | Settings {
@@ -25,10 +25,10 @@ function isValidSettings(x: unknown): x is Settings {
     "boolean" === typeof (x as Settings).naturalsOnly &&
     "boolean" === typeof (x as Settings).allowRepeats &&
     "number" === typeof (x as Settings).equivalenceRelation &&
-    (x as Settings).equivalenceRelation in SampleEquivalenceRelation &&
-    "boolean" === typeof (x as Settings).displayEquivalentNotes &&
+    (x as Settings).equivalenceRelation in NoteEquivalenceRelation &&
+    "boolean" === typeof (x as Settings).displayEquivalentNoteNames &&
     "number" === typeof (x as Settings).sampleDisplayStyle &&
-    (x as Settings).sampleDisplayStyle in SampleDisplayStyle &&
+    (x as Settings).sampleDisplayStyle in NoteDisplayStyle &&
     "number" === typeof (x as Settings).maxPitch &&
     (x as Settings).maxPitch in Pitch
   );
@@ -38,7 +38,7 @@ export function serializeSettings(settings: Settings): string {
   return JSON.stringify(settings);
 }
 
-export function deserializeNoteHistory(s: string): undefined | Sample[] {
+export function deserializeNoteHistory(s: string): undefined | Note[] {
   try {
     const parsed = JSON.parse(s);
     if (isValidSampleList(parsed)) {
@@ -49,27 +49,27 @@ export function deserializeNoteHistory(s: string): undefined | Sample[] {
   return undefined;
 }
 
-function isValidSampleList(x: unknown): x is Sample[] {
+function isValidSampleList(x: unknown): x is Note[] {
   return Array.isArray(x) && x.every(isSample);
 }
 
-function isSample(x: unknown): x is Sample {
+function isSample(x: unknown): x is Note {
   return (
     "object" === typeof x &&
     x !== null &&
-    isNote((x as Sample).note) &&
-    isPitch((x as Sample).pitch)
+    isNote((x as Note).name) &&
+    isPitch((x as Note).pitch)
   );
 }
 
-function isNote(x: unknown): x is Note {
-  return "string" === typeof Note[x as Note];
+function isNote(x: unknown): x is NoteName {
+  return "string" === typeof NoteName[x as NoteName];
 }
 
 function isPitch(x: unknown): x is Pitch {
   return "string" === typeof Pitch[x as Pitch];
 }
 
-export function serializeNoteHistory(notes: Sample[]): string {
+export function serializeNoteHistory(notes: Note[]): string {
   return JSON.stringify(notes);
 }

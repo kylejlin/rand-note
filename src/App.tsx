@@ -2,16 +2,18 @@ import React from "react";
 import "./App.css";
 import {
   State,
-  Note,
-  getPool,
-  noteStrings,
-  getSample,
+  NoteName,
+  getPossibleRandomNextNotes,
+  nameStrings,
+  getRandomNote,
   Settings,
-  SampleEquivalenceRelation,
-  NoteDisplayStyle as SampleDisplayStyle,
-  sampleEqRelToNoteEqRel,
+  NoteEquivalenceRelation,
+  NoteDisplayStyle,
+  noteEqRelToNoteNameEqRel,
   doesDisplayPitch,
   isOctaveSensitive,
+  getNotationWithLetters,
+  getNotationWithoutLetters,
 } from "./businessLogic";
 import {
   loadSettings,
@@ -19,6 +21,7 @@ import {
   saveSettings,
   saveNoteHistory,
 } from "./persistentState";
+import { Notation } from "react-abc";
 
 export default class App extends React.Component<{}, State> {
   constructor(props: {}) {
@@ -37,12 +40,11 @@ export default class App extends React.Component<{}, State> {
     this.onCloseSettingsClick = this.onCloseSettingsClick.bind(this);
     this.onNaturalsOnlyChange = this.onNaturalsOnlyChange.bind(this);
     this.onAllowRepeatsChange = this.onAllowRepeatsChange.bind(this);
-    this.onSampleDisplayStyleChange =
-      this.onSampleDisplayStyleChange.bind(this);
-    this.onSampleEquivalenceRelationChange =
-      this.onSampleEquivalenceRelationChange.bind(this);
-    this.onDisplayEquivalentNotesChange =
-      this.onDisplayEquivalentNotesChange.bind(this);
+    this.onNoteDisplayStyleChange = this.onNoteDisplayStyleChange.bind(this);
+    this.onNoteEquivalenceRelationChange =
+      this.onNoteEquivalenceRelationChange.bind(this);
+    this.onDisplayEquivalentNoteNamesChange =
+      this.onDisplayEquivalentNoteNamesChange.bind(this);
 
     this.onOpenSettingsClick = this.onOpenSettingsClick.bind(this);
     this.onClearHistoryClick = this.onClearHistoryClick.bind(this);
@@ -89,8 +91,8 @@ export default class App extends React.Component<{}, State> {
           <label className="Setting">
             <input
               type="checkbox"
-              checked={this.state.settings.displayEquivalentNotes}
-              onChange={this.onDisplayEquivalentNotesChange}
+              checked={this.state.settings.displayEquivalentNoteNames}
+              onChange={this.onDisplayEquivalentNoteNamesChange}
             />
             Display equivalent notes
           </label>
@@ -98,16 +100,16 @@ export default class App extends React.Component<{}, State> {
             Display style
             <select
               value={this.state.settings.sampleDisplayStyle}
-              onChange={this.onSampleDisplayStyleChange}
+              onChange={this.onNoteDisplayStyleChange}
             >
               <option
-                value={SampleDisplayStyle.Letters}
+                value={NoteDisplayStyle.Letters}
                 disabled={octaveSensitive}
               >
                 Letters
               </option>
-              <option value={SampleDisplayStyle.Staff}>Staff</option>
-              <option value={SampleDisplayStyle.StaffAndLetters}>
+              <option value={NoteDisplayStyle.Staff}>Staff</option>
+              <option value={NoteDisplayStyle.StaffAndLetters}>
                 Staff and letters
               </option>
             </select>
@@ -122,25 +124,25 @@ export default class App extends React.Component<{}, State> {
             Sample equivalence relation
             <select
               value={this.state.settings.equivalenceRelation}
-              onChange={this.onSampleEquivalenceRelationChange}
+              onChange={this.onNoteEquivalenceRelationChange}
             >
-              <option value={SampleEquivalenceRelation.ByNameModuloOctave}>
+              <option value={NoteEquivalenceRelation.ByNameModuloOctave}>
                 By name modulo octave (default)
               </option>
-              <option value={SampleEquivalenceRelation.ByPitchModuloOctave}>
+              <option value={NoteEquivalenceRelation.ByPitchModuloOctave}>
                 By pitch modulo octave
               </option>
-              <option value={SampleEquivalenceRelation.ByLetter}>
+              <option value={NoteEquivalenceRelation.ByLetter}>
                 By letter
               </option>
               <option
-                value={SampleEquivalenceRelation.ByPitch}
+                value={NoteEquivalenceRelation.ByPitch}
                 disabled={!displaysPitch}
               >
                 By pitch (octave sensitive)
               </option>
               <option
-                value={SampleEquivalenceRelation.Reflexive}
+                value={NoteEquivalenceRelation.ByNameAndPitch}
                 disabled={!displaysPitch}
               >
                 Reflexive (i.e., by pitch and name, octave sensitive)
@@ -170,30 +172,30 @@ export default class App extends React.Component<{}, State> {
     this.updateSetting("allowRepeats", event.target.checked);
   }
 
-  onSampleDisplayStyleChange(event: React.ChangeEvent<HTMLSelectElement>) {
+  onNoteDisplayStyleChange(event: React.ChangeEvent<HTMLSelectElement>) {
     const n = parseInt(event.target.value, 10);
-    if (n in SampleDisplayStyle) {
+    if (n in NoteDisplayStyle) {
       this.updateSetting(
         "sampleDisplayStyle",
-        n as unknown as SampleDisplayStyle
+        n as unknown as NoteDisplayStyle
       );
     }
   }
 
-  onSampleEquivalenceRelationChange(
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) {
+  onNoteEquivalenceRelationChange(event: React.ChangeEvent<HTMLSelectElement>) {
     const n = parseInt(event.target.value, 10);
-    if (n in SampleEquivalenceRelation) {
+    if (n in NoteEquivalenceRelation) {
       this.updateSetting(
         "equivalenceRelation",
-        n as unknown as SampleEquivalenceRelation
+        n as unknown as NoteEquivalenceRelation
       );
     }
   }
 
-  onDisplayEquivalentNotesChange(event: React.ChangeEvent<HTMLInputElement>) {
-    this.updateSetting("displayEquivalentNotes", event.target.checked);
+  onDisplayEquivalentNoteNamesChange(
+    event: React.ChangeEvent<HTMLInputElement>
+  ) {
+    this.updateSetting("displayEquivalentNoteNames", event.target.checked);
   }
 
   updateSetting<K extends keyof Settings>(setting: K, value: Settings[K]) {
@@ -208,15 +210,19 @@ export default class App extends React.Component<{}, State> {
   }
 
   renderNotePage(): React.ReactElement {
-    const currentNote: Note | undefined =
-      this.state.history[this.state.history.length - 1]?.note;
-    const { equivalenceRelation, displayEquivalentNotes } = this.state.settings;
+    const currentNote: NoteName | undefined =
+      this.state.history[this.state.history.length - 1]?.name;
+    const {
+      equivalenceRelation,
+      displayEquivalentNoteNames: displayEquivalentNotes,
+    } = this.state.settings;
 
     return (
       <div
         className={
           "App" +
-          (getPool(this.state.history, this.state.settings).length === 0
+          (getPossibleRandomNextNotes(this.state.history, this.state.settings)
+            .length === 0
             ? " LastNote"
             : "")
         }
@@ -226,16 +232,15 @@ export default class App extends React.Component<{}, State> {
           <button onClick={this.onOpenSettingsClick}>Settings</button>
           <button onClick={this.onClearHistoryClick}>Reset</button>
         </section>
-        {this.state.settings.sampleDisplayStyle ===
-        SampleDisplayStyle.Letters ? (
+        {this.state.settings.sampleDisplayStyle === NoteDisplayStyle.Letters ? (
           <>
             <section>
               <h2>Current note</h2>
               {currentNote !== undefined ? (
                 <div className="CurrentNote">
-                  {noteStrings(
+                  {nameStrings(
                     currentNote,
-                    sampleEqRelToNoteEqRel(equivalenceRelation),
+                    noteEqRelToNoteNameEqRel(equivalenceRelation),
                     displayEquivalentNotes
                   )}
                 </div>
@@ -246,9 +251,9 @@ export default class App extends React.Component<{}, State> {
             <section>
               {this.state.history.map((sample, i) => (
                 <div className="HistoryNote" key={i}>
-                  {noteStrings(
-                    sample.note,
-                    sampleEqRelToNoteEqRel(equivalenceRelation),
+                  {nameStrings(
+                    sample.name,
+                    noteEqRelToNoteNameEqRel(equivalenceRelation),
                     displayEquivalentNotes
                   )}
                 </div>
@@ -256,7 +261,16 @@ export default class App extends React.Component<{}, State> {
             </section>
           </>
         ) : (
-          <section>TODO</section>
+          <section>
+            <Notation
+              notation={
+                this.state.settings.sampleDisplayStyle ===
+                NoteDisplayStyle.StaffAndLetters
+                  ? getNotationWithLetters(this.state.history)
+                  : getNotationWithoutLetters(this.state.history)
+              }
+            />
+          </section>
         )}
       </div>
     );
@@ -277,7 +291,7 @@ export default class App extends React.Component<{}, State> {
     }
 
     this.setState((prevState) => {
-      const sample = getSample(prevState.history, prevState.settings);
+      const sample = getRandomNote(prevState.history, prevState.settings);
       const newHistory =
         sample === undefined
           ? prevState.history

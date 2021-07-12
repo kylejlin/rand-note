@@ -1,4 +1,4 @@
-import { DEFAULT_SETTINGS, Sample, Settings } from "./businessLogic";
+import { DEFAULT_SETTINGS, Note, Settings } from "./businessLogic";
 import {
   deserializeNoteHistory,
   deserializeSettings,
@@ -29,7 +29,7 @@ export function saveSettings(settings: Settings) {
   localStorage.setItem(LocalStorageKey.Settings, serializeSettings(settings));
 }
 
-export function loadNoteHistory(): Sample[] {
+export function loadNoteHistory(): Note[] {
   const s = localStorage.getItem(LocalStorageKey.NoteHistory);
   if (s === null) {
     return [];
@@ -43,7 +43,7 @@ export function loadNoteHistory(): Sample[] {
   }
 }
 
-export function saveNoteHistory(history: Sample[]) {
+export function saveNoteHistory(history: Note[]) {
   localStorage.setItem(
     LocalStorageKey.NoteHistory,
     serializeNoteHistory(history)
