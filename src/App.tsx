@@ -122,7 +122,7 @@ export default class App extends React.Component<{}, State> {
             {octaveSensitive && (
               <p>
                 (To enable the first option, set your equivalence relation to
-                any non-octave-sensitive relation)
+                any octave-insensitive relation)
               </p>
             )}
           </label>
@@ -133,25 +133,25 @@ export default class App extends React.Component<{}, State> {
               onChange={this.onNoteEquivalenceRelationChange}
             >
               <option value={NoteEquivalenceRelation.ByNameModuloOctave}>
-                By name modulo octave (default)
+                By name, octave-insensitive
               </option>
               <option value={NoteEquivalenceRelation.ByPitchModuloOctave}>
-                By pitch modulo octave
+                By pitch, octave-insensitive
               </option>
               <option value={NoteEquivalenceRelation.ByLetter}>
-                By letter
+                By letter (octave-insensitive)
               </option>
               <option
                 value={NoteEquivalenceRelation.ByPitch}
                 disabled={!displaysPitch}
               >
-                By pitch (octave sensitive)
+                By pitch, octave-sensitive
               </option>
               <option
                 value={NoteEquivalenceRelation.ByNameAndPitch}
                 disabled={!displaysPitch}
               >
-                Reflexive (i.e., by pitch and name, octave sensitive)
+                By pitch and name, octave-sensitive
               </option>
             </select>
             {!displaysPitch && (
