@@ -161,36 +161,50 @@ export default class App extends React.Component<{}, State> {
               </p>
             )}
           </label>
-          <label className="Setting Setting--slider">
-            <span className="Setting__Label">Lowest pitch:</span>
-            <input
-              type="range"
-              min={Pitch.E2}
-              max={Pitch.E6}
-              value={this.state.settings.minPitch}
-              onChange={this.onMinPitchChange}
-            />
-            <span className="Setting__Label">
-              {pitchToNoteNames(this.state.settings.minPitch)
-                .map(nameString)
-                .join("/") + getOctave(this.state.settings.minPitch)}
-            </span>
-          </label>
-          <label className="Setting Setting--slider">
-            <span className="Setting__Label">Highest pitch: </span>
-            <input
-              type="range"
-              min={Pitch.E2}
-              max={Pitch.E6}
-              value={this.state.settings.maxPitch}
-              onChange={this.onMaxPitchChange}
-            />
-            <span className="Setting__Label">
-              {pitchToNoteNames(this.state.settings.maxPitch)
-                .map(nameString)
-                .join("/") + getOctave(this.state.settings.maxPitch)}
-            </span>
-          </label>
+          <table className="SettingsTable">
+            <tbody>
+              <tr>
+                <td>
+                  <span className="ForceNewline">Lowest</span>
+                  <span className="ForceNewline">pitch:</span>
+                </td>
+                <td>
+                  <input
+                    type="range"
+                    min={Pitch.E2}
+                    max={Pitch.E6}
+                    value={this.state.settings.minPitch}
+                    onChange={this.onMinPitchChange}
+                  />
+                </td>
+                <td>
+                  {pitchToNoteNames(this.state.settings.minPitch)
+                    .map(nameString)
+                    .join("/") + getOctave(this.state.settings.minPitch)}
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <span className="ForceNewline">Highest</span>
+                  <span className="ForceNewline">pitch:</span>
+                </td>
+                <td>
+                  <input
+                    type="range"
+                    min={Pitch.E2}
+                    max={Pitch.E6}
+                    value={this.state.settings.maxPitch}
+                    onChange={this.onMaxPitchChange}
+                  />
+                </td>
+                <td>
+                  {pitchToNoteNames(this.state.settings.maxPitch)
+                    .map(nameString)
+                    .join("/") + getOctave(this.state.settings.maxPitch)}
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </section>
       </div>
     );

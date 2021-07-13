@@ -94,12 +94,13 @@ button {
   display: inline-block;
 }
 
-.Setting--slider .Setting__Label {
-  display: inline-block;
+.SettingsTable td {
+  padding-right: calc(0.03 * var(--minor-axis));
+  padding-top: calc(0.05 * var(--minor-axis));
 }
 
-.Setting--slider input {
-  display: inline-block;
+.ForceNewline {
+  display: block;
 }
 
 h2 {
