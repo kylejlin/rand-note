@@ -54,7 +54,7 @@ button {
   margin-top: calc(0.05 * var(--minor-axis));
 }
 
-.Setting input {
+.Setting--checkbox input {
   margin-right: calc(0.05 * var(--minor-axis));
 
   border-color: #767676;
@@ -72,7 +72,7 @@ button {
   transform: scale(var(--checkbox-scale));
 }
 
-.Setting select {
+.Setting--dropdown select {
   margin-right: calc(0.05 * var(--minor-axis));
   margin-top: calc(0.03 * var(--minor-axis));
 
@@ -91,6 +91,14 @@ button {
   border-radius: calc(0.03 * var(--minor-axis));
   background-color: transparent;
   padding: calc(0.03 * var(--minor-axis));
+  display: inline-block;
+}
+
+.Setting--slider .Setting__Label {
+  display: inline-block;
+}
+
+.Setting--slider input {
   display: inline-block;
 }
 

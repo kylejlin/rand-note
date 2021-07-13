@@ -10,6 +10,7 @@ export interface Settings {
   equivalenceRelation: NoteEquivalenceRelation;
   displayEquivalentNoteNames: boolean;
   sampleDisplayStyle: NoteDisplayStyle;
+  minPitch: Pitch;
   maxPitch: Pitch;
 }
 
@@ -210,6 +211,7 @@ export const DEFAULT_SETTINGS: Settings = {
   equivalenceRelation: NoteEquivalenceRelation.ByNameModuloOctave,
   displayEquivalentNoteNames: true,
   sampleDisplayStyle: NoteDisplayStyle.StaffAndLetters,
+  minPitch: Pitch.E2,
   maxPitch: Pitch.E5,
 };
 
@@ -290,7 +292,7 @@ function buildSample(note: NoteName, pitch: Pitch): Note {
   return { name: note, pitch };
 }
 
-function pitchToNoteNames(pitch: Pitch): NoteName[] {
+export function pitchToNoteNames(pitch: Pitch): NoteName[] {
   switch (pitch) {
     case Pitch.E2:
       return [NoteName.E];
@@ -702,8 +704,10 @@ export function getPossibleRandomNextNotes(
   prev: Note[],
   settings: Settings
 ): Note[] {
-  let possible = ALL_NOTES.slice().filter((sample) =>
-    isLowerThanOrEqualTo(sample.pitch, settings.maxPitch)
+  let possible = ALL_NOTES.slice().filter(
+    (sample) =>
+      isLowerThanOrEqualTo(settings.minPitch, sample.pitch) &&
+      isLowerThanOrEqualTo(sample.pitch, settings.maxPitch)
   );
 
   if (settings.naturalsOnly) {
@@ -844,7 +848,7 @@ function pitchAbcNotation(pitch: Pitch): string {
   }
 }
 
-function getOctave(pitch: Pitch): 2 | 3 | 4 | 5 | 6 {
+export function getOctave(pitch: Pitch): 2 | 3 | 4 | 5 | 6 {
   switch (pitch) {
     case Pitch.E2:
       return 2;

@@ -29,6 +29,8 @@ function isValidSettings(x: unknown): x is Settings {
     "boolean" === typeof (x as Settings).displayEquivalentNoteNames &&
     "number" === typeof (x as Settings).sampleDisplayStyle &&
     (x as Settings).sampleDisplayStyle in NoteDisplayStyle &&
+    "number" === typeof (x as Settings).minPitch &&
+    (x as Settings).minPitch in Pitch &&
     "number" === typeof (x as Settings).maxPitch &&
     (x as Settings).maxPitch in Pitch
   );
