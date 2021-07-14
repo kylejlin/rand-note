@@ -9,6 +9,7 @@ export interface Settings {
   allowRepeats: boolean;
   equivalenceRelation: NoteEquivalenceRelation;
   displayEquivalentNoteNames: boolean;
+  displayOctave: boolean;
   sampleDisplayStyle: NoteDisplayStyle;
   minPitch: Pitch;
   maxPitch: Pitch;
@@ -214,7 +215,8 @@ export const DEFAULT_SETTINGS: Settings = {
   naturalsOnly: true,
   allowRepeats: false,
   equivalenceRelation: NoteEquivalenceRelation.ByNameModuloOctave,
-  displayEquivalentNoteNames: true,
+  displayEquivalentNoteNames: false,
+  displayOctave: true,
   sampleDisplayStyle: NoteDisplayStyle.StaffAndLetters,
   minPitch: Pitch.E2,
   maxPitch: Pitch.E5,
@@ -788,12 +790,24 @@ export function getNotationWithoutLetters(
 }
 
 function getNotation(
-  samples: Note[],
+  notes: Note[],
   settings: Settings,
   displayLetters: boolean
 ): string {
   const lettersNotationOrEmptyString = displayLetters
-    ? samples.map((sample) => nameString(sample.name)).join(" ")
+    ? notes
+        .map((note) => {
+          const nameNotation = nameStrings(
+            note.name,
+            noteEqRelToNoteNameEqRel(settings.equivalenceRelation),
+            settings.displayEquivalentNoteNames
+          );
+          const octaveNotation = settings.displayOctave
+            ? getOctave(note.pitch)
+            : "";
+          return nameNotation + octaveNotation;
+        })
+        .join(" ")
     : "";
   return `
 X: 1
@@ -808,7 +822,7 @@ V: V2 clef=treble
   })}4 | ${insertXEveryN(
     () => "|",
     4,
-    samples.map((sample) => noteAbcNotation(sample))
+    notes.map((sample) => noteAbcNotation(sample))
   ).join(" ")} |]
 w:~Range ${lettersNotationOrEmptyString}
 [V: V2] ${noteAbcNotation({

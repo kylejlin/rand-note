@@ -49,6 +49,7 @@ export default class App extends React.Component<{}, State> {
       this.onNoteEquivalenceRelationChange.bind(this);
     this.onDisplayEquivalentNoteNamesChange =
       this.onDisplayEquivalentNoteNamesChange.bind(this);
+    this.onDisplayOctaveChange = this.onDisplayOctaveChange.bind(this);
     this.onMinPitchChange = this.onMinPitchChange.bind(this);
     this.onMaxPitchChange = this.onMaxPitchChange.bind(this);
 
@@ -101,6 +102,14 @@ export default class App extends React.Component<{}, State> {
               onChange={this.onDisplayEquivalentNoteNamesChange}
             />
             Display equivalent notes
+          </label>
+          <label className="Setting Setting--checkbox">
+            <input
+              type="checkbox"
+              checked={this.state.settings.displayOctave}
+              onChange={this.onDisplayOctaveChange}
+            />
+            Display octave
           </label>
           <label className="Setting Setting--dropdown">
             Display style
@@ -254,6 +263,10 @@ export default class App extends React.Component<{}, State> {
     event: React.ChangeEvent<HTMLInputElement>
   ): void {
     this.updateSetting("displayEquivalentNoteNames", event.target.checked);
+  }
+
+  onDisplayOctaveChange(event: React.ChangeEvent<HTMLInputElement>): void {
+    this.updateSetting("displayOctave", event.target.checked);
   }
 
   onMinPitchChange(event: React.ChangeEvent<HTMLInputElement>): void {

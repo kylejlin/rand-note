@@ -27,6 +27,7 @@ function isValidSettings(x: unknown): x is Settings {
     "number" === typeof (x as Settings).equivalenceRelation &&
     (x as Settings).equivalenceRelation in NoteEquivalenceRelation &&
     "boolean" === typeof (x as Settings).displayEquivalentNoteNames &&
+    "boolean" === typeof (x as Settings).displayOctave &&
     "number" === typeof (x as Settings).sampleDisplayStyle &&
     (x as Settings).sampleDisplayStyle in NoteDisplayStyle &&
     "number" === typeof (x as Settings).minPitch &&
