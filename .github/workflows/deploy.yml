@@ -15,8 +15,8 @@ jobs:
           tar -xzf node_modules_backup/node_modules.tar.gz;
 
           # Only reinstall if tests fail
-          npm test || npm install
-          
+          (npm test && cmp package.json node_modules_backup/package_json_checksum.json) || npm install
+
       - name: Test
         run: npm test
 
@@ -32,7 +32,7 @@ jobs:
       - name: Archive node_modules
         run: |
           source scripts/archive_node_modules_if_needed.sh &&
-          
+
           git config --global user.name 'GitHub Actions Bot' &&
           git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com' &&
           git add . &&
