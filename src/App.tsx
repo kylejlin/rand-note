@@ -342,8 +342,14 @@ export default class App extends React.Component<{}, State> {
               notation={
                 this.state.settings.sampleDisplayStyle ===
                 NoteDisplayStyle.StaffAndLetters
-                  ? getNotationWithLetters(this.state.history)
-                  : getNotationWithoutLetters(this.state.history)
+                  ? getNotationWithLetters(
+                      this.state.history,
+                      this.state.settings
+                    )
+                  : getNotationWithoutLetters(
+                      this.state.history,
+                      this.state.settings
+                    )
               }
             />
           </section>

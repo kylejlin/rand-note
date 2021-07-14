@@ -773,30 +773,48 @@ export function areEqualAccordingTo(
   }
 }
 
-export function getNotationWithLetters(samples: Note[]): string {
-  return getNotation(samples, true);
+export function getNotationWithLetters(
+  samples: Note[],
+  settings: Settings
+): string {
+  return getNotation(samples, settings, true);
 }
 
-export function getNotationWithoutLetters(samples: Note[]): string {
-  return getNotation(samples, false);
+export function getNotationWithoutLetters(
+  samples: Note[],
+  settings: Settings
+): string {
+  return getNotation(samples, settings, false);
 }
 
-function getNotation(samples: Note[], displayLetters: boolean): string {
+function getNotation(
+  samples: Note[],
+  settings: Settings,
+  displayLetters: boolean
+): string {
   const lettersNotationOrEmptyString = displayLetters
-    ? `w:1.~${samples.map((sample) => nameString(sample.name)).join(" ")}`
+    ? samples.map((sample) => nameString(sample.name)).join(" ")
     : "";
   return `
 X: 1
 M: 4/4
 L: 1/4
-%%staves {V1}
+%%staves {(V1 V2)}
 V: V1 clef=treble
-[V: V1] ${insertXEveryN(
+V: V2 clef=treble
+[V: V1] ${noteAbcNotation({
+    pitch: settings.maxPitch,
+    name: pitchToNoteNames(settings.maxPitch)[0],
+  })}4 | ${insertXEveryN(
     () => "|",
     4,
     samples.map((sample) => noteAbcNotation(sample))
   ).join(" ")} |]
-${lettersNotationOrEmptyString}
+w:~Range ${lettersNotationOrEmptyString}
+[V: V2] ${noteAbcNotation({
+    pitch: settings.minPitch,
+    name: pitchToNoteNames(settings.minPitch)[0],
+  })}4 |]
 `;
 }
 
