@@ -33,7 +33,8 @@ export enum NoteEquivalenceRelation {
   ByLetter = 2,
 
   ByPitch = 3,
-  ByNameAndPitch = 4,
+  ByNameAndOctave = 4,
+  ByLetterAndOctave = 5,
 }
 
 export function isOctaveSensitive(er: NoteEquivalenceRelation): boolean {
@@ -46,7 +47,9 @@ export function isOctaveSensitive(er: NoteEquivalenceRelation): boolean {
       return false;
     case NoteEquivalenceRelation.ByPitch:
       return true;
-    case NoteEquivalenceRelation.ByNameAndPitch:
+    case NoteEquivalenceRelation.ByNameAndOctave:
+      return true;
+    case NoteEquivalenceRelation.ByLetterAndOctave:
       return true;
   }
 }
@@ -69,8 +72,10 @@ export function noteEqRelToNoteNameEqRel(
       return NoteNameEquivalenceRelation.ByLetter;
     case NoteEquivalenceRelation.ByPitch:
       return NoteNameEquivalenceRelation.ByPitch;
-    case NoteEquivalenceRelation.ByNameAndPitch:
+    case NoteEquivalenceRelation.ByNameAndOctave:
       return NoteNameEquivalenceRelation.Reflexive;
+    case NoteEquivalenceRelation.ByLetterAndOctave:
+      return NoteNameEquivalenceRelation.ByLetter;
   }
 }
 
@@ -758,12 +763,28 @@ export function areEqualAccordingTo(
       return natural(a.name) === natural(b.name);
     case NoteEquivalenceRelation.ByPitch:
       return a.pitch === b.pitch;
-    case NoteEquivalenceRelation.ByNameAndPitch:
-      return a.name === b.name && a.pitch === b.pitch;
+    case NoteEquivalenceRelation.ByNameAndOctave:
+      return a.name === b.name && getOctave(a.pitch) === getOctave(b.pitch);
+    case NoteEquivalenceRelation.ByLetterAndOctave:
+      return (
+        natural(a.name) === natural(b.name) &&
+        getOctave(a.pitch) === getOctave(b.pitch)
+      );
   }
 }
 
 export function getNotationWithLetters(samples: Note[]): string {
+  return getNotation(samples, true);
+}
+
+export function getNotationWithoutLetters(samples: Note[]): string {
+  return getNotation(samples, false);
+}
+
+function getNotation(samples: Note[], displayLetters: boolean): string {
+  const lettersNotationOrEmptyString = displayLetters
+    ? `w:1.~${samples.map((sample) => nameString(sample.name)).join(" ")}`
+    : "";
   return `
 X: 1
 M: 4/4
@@ -775,7 +796,7 @@ V: V1 clef=treble
     4,
     samples.map((sample) => noteAbcNotation(sample))
   ).join(" ")} |]
-w:1.~${samples.map((sample) => nameString(sample.name)).join(" ")}
+${lettersNotationOrEmptyString}
 `;
 }
 
@@ -949,15 +970,4 @@ export function getOctave(pitch: Pitch): 2 | 3 | 4 | 5 | 6 {
     case Pitch.E6:
       return 6;
   }
-}
-
-export function getNotationWithoutLetters(notes: Note[]): string {
-  return `
-X: 1
-M: 4/4
-L: 1/4
-%%staves {V1}
-V: V1 clef=treble
-[V: V1] (d3 _B =B_A =A2 | _A2 _B=B G2) (cB | d8)        |]
-`;
 }

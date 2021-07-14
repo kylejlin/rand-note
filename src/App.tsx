@@ -148,10 +148,16 @@ export default class App extends React.Component<{}, State> {
                 By pitch, octave-sensitive
               </option>
               <option
-                value={NoteEquivalenceRelation.ByNameAndPitch}
+                value={NoteEquivalenceRelation.ByNameAndOctave}
                 disabled={!displaysPitch}
               >
-                By pitch and name, octave-sensitive
+                By pitch and octave (octave-sensitive)
+              </option>
+              <option
+                value={NoteEquivalenceRelation.ByLetterAndOctave}
+                disabled={!displaysPitch}
+              >
+                By letter and octave (octave-sensitive)
               </option>
             </select>
             {!displaysPitch && (

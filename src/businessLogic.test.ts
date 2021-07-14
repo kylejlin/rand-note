@@ -11,6 +11,7 @@ import {
   natural,
   sharpOfNatural,
   ALL_NOTES,
+  getOctave,
 } from "./businessLogic";
 
 test("alternativeName is involutive", () => {
@@ -59,12 +60,25 @@ test("EquivalenceRelation.ByPitch spec", () => {
   }
 });
 
-test("EquivalenceRelation.ByNameAndPitch spec", () => {
+test("EquivalenceRelation.ByNameAndOctave spec", () => {
   for (const a of ALL_NOTES) {
     for (const b of ALL_NOTES) {
       expect(
-        areEqualAccordingTo(NoteEquivalenceRelation.ByNameAndPitch, a, b)
-      ).toBe(a.name === b.name && a.pitch === b.pitch);
+        areEqualAccordingTo(NoteEquivalenceRelation.ByNameAndOctave, a, b)
+      ).toBe(a.name === b.name && getOctave(a.pitch) === getOctave(b.pitch));
+    }
+  }
+});
+
+test("EquivalenceRelation.ByLetterAndOctave spec", () => {
+  for (const a of ALL_NOTES) {
+    for (const b of ALL_NOTES) {
+      expect(
+        areEqualAccordingTo(NoteEquivalenceRelation.ByLetterAndOctave, a, b)
+      ).toBe(
+        natural(a.name) === natural(b.name) &&
+          getOctave(a.pitch) === getOctave(b.pitch)
+      );
     }
   }
 });
