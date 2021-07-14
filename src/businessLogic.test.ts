@@ -59,7 +59,7 @@ test("EquivalenceRelation.ByPitch spec", () => {
   }
 });
 
-test("EquivalenceRelation.Reflexive spec", () => {
+test("EquivalenceRelation.ByNameAndPitch spec", () => {
   for (const a of ALL_NOTES) {
     for (const b of ALL_NOTES) {
       expect(
