@@ -12,10 +12,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          tar -xzf node_modules_backup/node_modules.tar.gz;
+          npm run smart-install
 
-          # Only reinstall if tests fail
-          (npm test && cmp package.json node_modules_backup/package_json_checksum.json) || npm install
+          # If tests fail, try reinstalling
+          npm test || npm install
 
       - name: Test
         run: npm test
