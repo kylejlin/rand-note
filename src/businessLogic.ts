@@ -15,86 +15,21 @@ export interface Settings {
   maxPitch: Pitch;
 }
 
-export enum NoteEquivalenceRelation {
-  /** "modulo octave" means the octaves won't affect equality (e.g., E2 = E4) */
-  ByNameModuloOctave = 0,
-  /** "modulo octave" means the octaves won't affect equality (e.g., E2 = E4) */
-  ByPitchModuloOctave = 1,
-
-  /**
-   * Definition: Two samples are equal iff they have the same letter.
-   *
-   * This means:
-   * - `ASharp`, `AFlat`, and `A` are all equal
-   * - Octave doesn't matter, since we only care about the letter
-   *
-   * This usually isn't very useful for playing actual music, but
-   * it can come in handy for certain drills (e.g., https://www.youtube.com/watch?v=PJddQ6Q0UDo&t=556s)
-   */
-  ByLetter = 2,
-
-  ByPitch = 3,
-  ByNameAndOctave = 4,
-  ByLetterAndOctave = 5,
+export interface NoteEquivalenceRelation {
+  nameEqRel: NoteNameEquivalenceRelation;
+  isOctaveSensitive: boolean;
 }
 
-export function isOctaveSensitive(er: NoteEquivalenceRelation): boolean {
-  switch (er) {
-    case NoteEquivalenceRelation.ByNameModuloOctave:
-      return false;
-    case NoteEquivalenceRelation.ByPitchModuloOctave:
-      return false;
-    case NoteEquivalenceRelation.ByLetter:
-      return false;
-    case NoteEquivalenceRelation.ByPitch:
-      return true;
-    case NoteEquivalenceRelation.ByNameAndOctave:
-      return true;
-    case NoteEquivalenceRelation.ByLetterAndOctave:
-      return true;
-  }
-}
-
-enum NoteNameEquivalenceRelation {
+export enum NoteNameEquivalenceRelation {
   Reflexive,
   ByPitch,
   ByLetter,
-}
-
-export function noteEqRelToNoteNameEqRel(
-  er: NoteEquivalenceRelation
-): NoteNameEquivalenceRelation {
-  switch (er) {
-    case NoteEquivalenceRelation.ByNameModuloOctave:
-      return NoteNameEquivalenceRelation.Reflexive;
-    case NoteEquivalenceRelation.ByPitchModuloOctave:
-      return NoteNameEquivalenceRelation.ByPitch;
-    case NoteEquivalenceRelation.ByLetter:
-      return NoteNameEquivalenceRelation.ByLetter;
-    case NoteEquivalenceRelation.ByPitch:
-      return NoteNameEquivalenceRelation.ByPitch;
-    case NoteEquivalenceRelation.ByNameAndOctave:
-      return NoteNameEquivalenceRelation.Reflexive;
-    case NoteEquivalenceRelation.ByLetterAndOctave:
-      return NoteNameEquivalenceRelation.ByLetter;
-  }
 }
 
 export enum NoteDisplayStyle {
   Letters,
   Staff,
   StaffAndLetters,
-}
-
-export function doesDisplayPitch(style: NoteDisplayStyle): boolean {
-  switch (style) {
-    case NoteDisplayStyle.Letters:
-      return false;
-    case NoteDisplayStyle.Staff:
-      return true;
-    case NoteDisplayStyle.StaffAndLetters:
-      return true;
-  }
 }
 
 /**
@@ -214,7 +149,10 @@ const ALL_PITCHES: readonly Pitch[] = [
 export const DEFAULT_SETTINGS: Settings = {
   naturalsOnly: true,
   allowRepeats: false,
-  equivalenceRelation: NoteEquivalenceRelation.ByNameModuloOctave,
+  equivalenceRelation: {
+    nameEqRel: NoteNameEquivalenceRelation.ByLetter,
+    isOctaveSensitive: false,
+  },
   displayEquivalentNoteNames: false,
   displayOctave: true,
   sampleDisplayStyle: NoteDisplayStyle.StaffAndLetters,
@@ -730,7 +668,7 @@ export function getPossibleRandomNextNotes(
   return possible.filter(
     (possibleSample) =>
       !prev.some((prevSample) =>
-        areEqualAccordingTo(
+        areNotesEqualAccordingTo(
           settings.equivalenceRelation,
           possibleSample,
           prevSample
@@ -751,27 +689,32 @@ export function randomElement<T>(arr: T[]): undefined | T {
   }
 }
 
-export function areEqualAccordingTo(
+export function areNotesEqualAccordingTo(
   rel: NoteEquivalenceRelation,
   a: Note,
   b: Note
 ): boolean {
+  const areOctavesEqualIfNeeded = rel.isOctaveSensitive
+    ? getOctave(a.pitch) === getOctave(b.pitch)
+    : true;
+  return (
+    areOctavesEqualIfNeeded &&
+    areNoteNamesEqualAccordingTo(rel.nameEqRel, a.name, b.name)
+  );
+}
+
+function areNoteNamesEqualAccordingTo(
+  rel: NoteNameEquivalenceRelation,
+  a: NoteName,
+  b: NoteName
+): boolean {
   switch (rel) {
-    case NoteEquivalenceRelation.ByNameModuloOctave:
-      return a.name === b.name;
-    case NoteEquivalenceRelation.ByPitchModuloOctave:
-      return a.name === b.name || a.name === alternativeName(b.name);
-    case NoteEquivalenceRelation.ByLetter:
-      return natural(a.name) === natural(b.name);
-    case NoteEquivalenceRelation.ByPitch:
-      return a.pitch === b.pitch;
-    case NoteEquivalenceRelation.ByNameAndOctave:
-      return a.name === b.name && getOctave(a.pitch) === getOctave(b.pitch);
-    case NoteEquivalenceRelation.ByLetterAndOctave:
-      return (
-        natural(a.name) === natural(b.name) &&
-        getOctave(a.pitch) === getOctave(b.pitch)
-      );
+    case NoteNameEquivalenceRelation.Reflexive:
+      return a === b;
+    case NoteNameEquivalenceRelation.ByPitch:
+      return a === b || a === alternativeName(b);
+    case NoteNameEquivalenceRelation.ByLetter:
+      return natural(a) === natural(b);
   }
 }
 
@@ -799,7 +742,7 @@ function getNotation(
         .map((note) => {
           const nameNotation = nameStrings(
             note.name,
-            noteEqRelToNoteNameEqRel(settings.equivalenceRelation),
+            settings.equivalenceRelation.nameEqRel,
             settings.displayEquivalentNoteNames
           );
           const octaveNotation = settings.displayOctave

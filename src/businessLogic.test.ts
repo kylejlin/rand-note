@@ -3,8 +3,7 @@
 import {
   ALL_NATURALS,
   alternativeName,
-  areEqualAccordingTo,
-  NoteEquivalenceRelation,
+  areNotesEqualAccordingTo,
   flatOfNatural,
   Modification,
   modification,
@@ -12,6 +11,7 @@ import {
   sharpOfNatural,
   ALL_NOTES,
   getOctave,
+  NoteNameEquivalenceRelation,
 } from "./businessLogic";
 
 test("alternativeName is involutive", () => {
@@ -20,61 +20,103 @@ test("alternativeName is involutive", () => {
   }
 });
 
-test("EquivalenceRelation.ByNameModuloOctave spec", () => {
+test("[by name, octave insensitive] spec", () => {
   for (const a of ALL_NOTES) {
     for (const b of ALL_NOTES) {
       expect(
-        areEqualAccordingTo(NoteEquivalenceRelation.ByNameModuloOctave, a, b)
+        areNotesEqualAccordingTo(
+          {
+            isOctaveSensitive: false,
+            nameEqRel: NoteNameEquivalenceRelation.Reflexive,
+          },
+          a,
+          b
+        )
       ).toBe(a.name === b.name);
     }
   }
 });
 
-test("EquivalenceRelation.ByPitchModuloOctave spec", () => {
+test("[by pitch, octave insensitive] spec", () => {
   for (const a of ALL_NOTES) {
     for (const b of ALL_NOTES) {
       expect(
-        areEqualAccordingTo(NoteEquivalenceRelation.ByPitchModuloOctave, a, b)
+        areNotesEqualAccordingTo(
+          {
+            isOctaveSensitive: false,
+            nameEqRel: NoteNameEquivalenceRelation.ByPitch,
+          },
+          a,
+          b
+        )
       ).toBe(a.name === b.name || a.name === alternativeName(b.name));
     }
   }
 });
 
-test("EquivalenceRelation.ByLetter spec", () => {
-  for (const a of ALL_NOTES) {
-    for (const b of ALL_NOTES) {
-      expect(areEqualAccordingTo(NoteEquivalenceRelation.ByLetter, a, b)).toBe(
-        natural(a.name) === natural(b.name)
-      );
-    }
-  }
-});
-
-test("EquivalenceRelation.ByPitch spec", () => {
-  for (const a of ALL_NOTES) {
-    for (const b of ALL_NOTES) {
-      expect(areEqualAccordingTo(NoteEquivalenceRelation.ByPitch, a, b)).toBe(
-        a.pitch === b.pitch
-      );
-    }
-  }
-});
-
-test("EquivalenceRelation.ByNameAndOctave spec", () => {
+test("[by letter, octave insensitive] spec", () => {
   for (const a of ALL_NOTES) {
     for (const b of ALL_NOTES) {
       expect(
-        areEqualAccordingTo(NoteEquivalenceRelation.ByNameAndOctave, a, b)
+        areNotesEqualAccordingTo(
+          {
+            isOctaveSensitive: false,
+            nameEqRel: NoteNameEquivalenceRelation.ByLetter,
+          },
+          a,
+          b
+        )
+      ).toBe(natural(a.name) === natural(b.name));
+    }
+  }
+});
+
+test("[by pitch, octave sensitive] spec", () => {
+  for (const a of ALL_NOTES) {
+    for (const b of ALL_NOTES) {
+      expect(
+        areNotesEqualAccordingTo(
+          {
+            isOctaveSensitive: true,
+            nameEqRel: NoteNameEquivalenceRelation.ByPitch,
+          },
+          a,
+          b
+        )
+      ).toBe(a.pitch === b.pitch);
+    }
+  }
+});
+
+test("[by name, octave sensitive] spec", () => {
+  for (const a of ALL_NOTES) {
+    for (const b of ALL_NOTES) {
+      expect(
+        areNotesEqualAccordingTo(
+          {
+            isOctaveSensitive: true,
+            nameEqRel: NoteNameEquivalenceRelation.Reflexive,
+          },
+          a,
+          b
+        )
       ).toBe(a.name === b.name && getOctave(a.pitch) === getOctave(b.pitch));
     }
   }
 });
 
-test("EquivalenceRelation.ByLetterAndOctave spec", () => {
+test("[by letter, octave sensitive] spec", () => {
   for (const a of ALL_NOTES) {
     for (const b of ALL_NOTES) {
       expect(
-        areEqualAccordingTo(NoteEquivalenceRelation.ByLetterAndOctave, a, b)
+        areNotesEqualAccordingTo(
+          {
+            isOctaveSensitive: true,
+            nameEqRel: NoteNameEquivalenceRelation.ByLetter,
+          },
+          a,
+          b
+        )
       ).toBe(
         natural(a.name) === natural(b.name) &&
           getOctave(a.pitch) === getOctave(b.pitch)

@@ -7,17 +7,14 @@ import {
   nameStrings,
   getRandomNote,
   Settings,
-  NoteEquivalenceRelation,
   NoteDisplayStyle,
-  noteEqRelToNoteNameEqRel,
-  doesDisplayPitch,
-  isOctaveSensitive,
   getNotationWithLetters,
   getNotationWithoutLetters,
   Pitch,
   pitchToNoteNames,
   nameString,
   getOctave,
+  NoteNameEquivalenceRelation,
 } from "./businessLogic";
 import {
   loadSettings,
@@ -45,8 +42,9 @@ export default class App extends React.Component<{}, State> {
     this.onNaturalsOnlyChange = this.onNaturalsOnlyChange.bind(this);
     this.onAllowRepeatsChange = this.onAllowRepeatsChange.bind(this);
     this.onNoteDisplayStyleChange = this.onNoteDisplayStyleChange.bind(this);
-    this.onNoteEquivalenceRelationChange =
-      this.onNoteEquivalenceRelationChange.bind(this);
+    this.onEqRelIsOctaveSensitiveChange =
+      this.onEqRelIsOctaveSensitiveChange.bind(this);
+    this.onEqRelNameEqRelChange = this.onEqRelNameEqRelChange.bind(this);
     this.onDisplayEquivalentNoteNamesChange =
       this.onDisplayEquivalentNoteNamesChange.bind(this);
     this.onDisplayOctaveChange = this.onDisplayOctaveChange.bind(this);
@@ -67,12 +65,6 @@ export default class App extends React.Component<{}, State> {
   }
 
   renderSettingsPage(): React.ReactElement {
-    const octaveSensitive = isOctaveSensitive(
-      this.state.settings.equivalenceRelation
-    );
-    const displaysPitch = doesDisplayPitch(
-      this.state.settings.sampleDisplayStyle
-    );
     return (
       <div className="App">
         <section>
@@ -117,65 +109,43 @@ export default class App extends React.Component<{}, State> {
               value={this.state.settings.sampleDisplayStyle}
               onChange={this.onNoteDisplayStyleChange}
             >
-              <option
-                value={NoteDisplayStyle.Letters}
-                disabled={octaveSensitive}
-              >
-                Letters
-              </option>
+              <option value={NoteDisplayStyle.Letters}>Letters</option>
               <option value={NoteDisplayStyle.Staff}>Staff</option>
               <option value={NoteDisplayStyle.StaffAndLetters}>
                 Staff and letters
               </option>
             </select>
-            {octaveSensitive && (
-              <p>
-                (To enable the first option, set your equivalence relation to
-                any octave-insensitive relation)
-              </p>
-            )}
           </label>
-          <label className="Setting Setting--dropdown">
-            Note equivalence relation
-            <select
-              value={this.state.settings.equivalenceRelation}
-              onChange={this.onNoteEquivalenceRelationChange}
-            >
-              <option value={NoteEquivalenceRelation.ByNameModuloOctave}>
-                By name, octave-insensitive
-              </option>
-              <option value={NoteEquivalenceRelation.ByPitchModuloOctave}>
-                By pitch, octave-insensitive
-              </option>
-              <option value={NoteEquivalenceRelation.ByLetter}>
-                By letter (octave-insensitive)
-              </option>
-              <option
-                value={NoteEquivalenceRelation.ByPitch}
-                disabled={!displaysPitch}
+          <section>
+            <header>Note equivalence</header>
+            <label className="Setting Setting--checkbox">
+              <input
+                type="checkbox"
+                checked={
+                  this.state.settings.equivalenceRelation.isOctaveSensitive
+                }
+                onChange={this.onEqRelIsOctaveSensitiveChange}
+              />
+              Octave sensitive
+            </label>
+            <label className="Setting Setting--dropdown">
+              Note name equivalence
+              <select
+                value={this.state.settings.equivalenceRelation.nameEqRel}
+                onChange={this.onEqRelNameEqRelChange}
               >
-                By pitch, octave-sensitive
-              </option>
-              <option
-                value={NoteEquivalenceRelation.ByNameAndOctave}
-                disabled={!displaysPitch}
-              >
-                By pitch and octave (octave-sensitive)
-              </option>
-              <option
-                value={NoteEquivalenceRelation.ByLetterAndOctave}
-                disabled={!displaysPitch}
-              >
-                By letter and octave (octave-sensitive)
-              </option>
-            </select>
-            {!displaysPitch && (
-              <p>
-                (To enable the last two options, set your Display Style to
-                "Staff" or "Staff and Letters")
-              </p>
-            )}
-          </label>
+                <option value={NoteNameEquivalenceRelation.Reflexive}>
+                  By name
+                </option>
+                <option value={NoteNameEquivalenceRelation.ByPitch}>
+                  By pitch
+                </option>
+                <option value={NoteNameEquivalenceRelation.ByLetter}>
+                  By letter
+                </option>
+              </select>
+            </label>
+          </section>
           <table className="SettingsTable">
             <tbody>
               <tr>
@@ -247,15 +217,42 @@ export default class App extends React.Component<{}, State> {
     }
   }
 
-  onNoteEquivalenceRelationChange(
-    event: React.ChangeEvent<HTMLSelectElement>
+  onEqRelIsOctaveSensitiveChange(
+    event: React.ChangeEvent<HTMLInputElement>
   ): void {
+    this.setState((prevState) => {
+      const newSettings: Settings = {
+        ...prevState.settings,
+        equivalenceRelation: {
+          ...prevState.settings.equivalenceRelation,
+          isOctaveSensitive: event.target.checked,
+        },
+      };
+      saveSettings(newSettings);
+      return {
+        ...prevState,
+        settings: newSettings,
+      };
+    });
+  }
+
+  onEqRelNameEqRelChange(event: React.ChangeEvent<HTMLSelectElement>): void {
     const n = parseInt(event.target.value, 10);
-    if (n in NoteEquivalenceRelation) {
-      this.updateSetting(
-        "equivalenceRelation",
-        n as unknown as NoteEquivalenceRelation
-      );
+    if (n in NoteNameEquivalenceRelation) {
+      this.setState((prevState) => {
+        const newSettings: Settings = {
+          ...prevState.settings,
+          equivalenceRelation: {
+            ...prevState.settings.equivalenceRelation,
+            nameEqRel: n,
+          },
+        };
+        saveSettings(newSettings);
+        return {
+          ...prevState,
+          settings: newSettings,
+        };
+      });
     }
   }
 
@@ -287,7 +284,10 @@ export default class App extends React.Component<{}, State> {
     }
   }
 
-  updateSetting<K extends keyof Settings>(setting: K, value: Settings[K]) {
+  updateSetting<K extends keyof Settings>(
+    setting: K,
+    value: Settings[K]
+  ): void {
     this.setState((prevState) => {
       const newSettings = { ...prevState.settings, [setting]: value };
       saveSettings(newSettings);
@@ -329,7 +329,7 @@ export default class App extends React.Component<{}, State> {
                 <div className="CurrentNote">
                   {nameStrings(
                     currentNote,
-                    noteEqRelToNoteNameEqRel(equivalenceRelation),
+                    equivalenceRelation.nameEqRel,
                     displayEquivalentNotes
                   )}
                 </div>
@@ -342,7 +342,7 @@ export default class App extends React.Component<{}, State> {
                 <div className="HistoryNote" key={i}>
                   {nameStrings(
                     sample.name,
-                    noteEqRelToNoteNameEqRel(equivalenceRelation),
+                    equivalenceRelation.nameEqRel,
                     displayEquivalentNotes
                   )}
                 </div>

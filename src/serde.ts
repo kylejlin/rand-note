@@ -5,6 +5,7 @@ import {
   Pitch,
   Settings,
   NoteDisplayStyle,
+  NoteNameEquivalenceRelation,
 } from "./businessLogic";
 
 export function deserializeSettings(s: string): undefined | Settings {
@@ -24,8 +25,7 @@ function isValidSettings(x: unknown): x is Settings {
     x !== null &&
     "boolean" === typeof (x as Settings).naturalsOnly &&
     "boolean" === typeof (x as Settings).allowRepeats &&
-    "number" === typeof (x as Settings).equivalenceRelation &&
-    (x as Settings).equivalenceRelation in NoteEquivalenceRelation &&
+    isValidEquivalenceRelation((x as Settings).equivalenceRelation) &&
     "boolean" === typeof (x as Settings).displayEquivalentNoteNames &&
     "boolean" === typeof (x as Settings).displayOctave &&
     "number" === typeof (x as Settings).sampleDisplayStyle &&
@@ -34,6 +34,16 @@ function isValidSettings(x: unknown): x is Settings {
     (x as Settings).minPitch in Pitch &&
     "number" === typeof (x as Settings).maxPitch &&
     (x as Settings).maxPitch in Pitch
+  );
+}
+
+function isValidEquivalenceRelation(x: unknown): x is NoteEquivalenceRelation {
+  return (
+    "object" === typeof x &&
+    x !== null &&
+    "boolean" === typeof (x as NoteEquivalenceRelation).isOctaveSensitive &&
+    "number" === typeof (x as NoteEquivalenceRelation).nameEqRel &&
+    (x as NoteEquivalenceRelation).nameEqRel in NoteNameEquivalenceRelation
   );
 }
 
