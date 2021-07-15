@@ -31,7 +31,7 @@ jobs:
 
       - name: Archive node_modules
         run: |
-          source scripts/archive_node_modules_if_needed.sh &&
+          npm run archive-node-modules &&
 
           git config --global user.name 'GitHub Actions Bot' &&
           git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com' &&
