@@ -93,7 +93,7 @@ export default class App extends React.Component<{}, State> {
               checked={this.state.settings.displayEquivalentNoteNames}
               onChange={this.onDisplayEquivalentNoteNamesChange}
             />
-            Display equivalent notes
+            Display equivalent note names
           </label>
           <label className="Setting Setting--checkbox">
             <input
