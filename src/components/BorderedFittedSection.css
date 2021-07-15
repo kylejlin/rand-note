@@ -1,0 +1,23 @@
+.BorderedSection--fitted {
+  display: block;
+  margin-top: calc(0.03 * var(--minor-axis));
+  margin-bottom: calc(0.03 * var(--minor-axis));
+}
+
+.BorderedSection--fitted .FittedContainer {
+  border-color: #4caf50ff;
+  border-style: solid;
+  border-radius: calc(0.03 * var(--minor-axis));
+  background-color: transparent;
+  padding: calc(0.03 * var(--minor-axis));
+  display: inline-block;
+}
+
+.BorderedSection .BorderedSection--fitted .FittedContainer {
+  border-color: rgb(204, 204, 204);
+  border-style: solid;
+  border-radius: calc(0.03 * var(--minor-axis));
+  background-color: transparent;
+  padding: calc(0.03 * var(--minor-axis));
+  display: inline-block;
+}

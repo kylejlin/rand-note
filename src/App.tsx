@@ -23,6 +23,8 @@ import {
   saveNoteHistory,
 } from "./persistentState";
 import { Notation } from "react-abc";
+import { BorderedFittedSection } from "./components/BorderedFittedSection";
+import { IndentedSection } from "./components/IndentedSection";
 
 export default class App extends React.Component<{}, State> {
   constructor(props: {}) {
@@ -103,9 +105,10 @@ export default class App extends React.Component<{}, State> {
             />
             Display octave
           </label>
-          <label className="Setting Setting--dropdown">
-            Display style
+          <BorderedFittedSection>
+            <label>Display style</label>
             <select
+              className="Dropdown__Input"
               value={this.state.settings.sampleDisplayStyle}
               onChange={this.onNoteDisplayStyleChange}
             >
@@ -115,37 +118,42 @@ export default class App extends React.Component<{}, State> {
                 Staff and letters
               </option>
             </select>
-          </label>
-          <section>
+          </BorderedFittedSection>
+          <BorderedFittedSection>
             <header>Note equivalence</header>
-            <label className="Setting Setting--checkbox">
-              <input
-                type="checkbox"
-                checked={
-                  this.state.settings.equivalenceRelation.isOctaveSensitive
-                }
-                onChange={this.onEqRelIsOctaveSensitiveChange}
-              />
-              Octave sensitive
-            </label>
-            <label className="Setting Setting--dropdown">
-              Note name equivalence
-              <select
-                value={this.state.settings.equivalenceRelation.nameEqRel}
-                onChange={this.onEqRelNameEqRelChange}
-              >
-                <option value={NoteNameEquivalenceRelation.Reflexive}>
-                  By name
-                </option>
-                <option value={NoteNameEquivalenceRelation.ByPitch}>
-                  By pitch
-                </option>
-                <option value={NoteNameEquivalenceRelation.ByLetter}>
-                  By letter
-                </option>
-              </select>
-            </label>
-          </section>
+            <IndentedSection>
+              <BorderedFittedSection>
+                <label className="Setting Setting--checkbox Setting--no-top-margin">
+                  <input
+                    type="checkbox"
+                    checked={
+                      this.state.settings.equivalenceRelation.isOctaveSensitive
+                    }
+                    onChange={this.onEqRelIsOctaveSensitiveChange}
+                  />
+                  Octave sensitive
+                </label>
+              </BorderedFittedSection>
+              <BorderedFittedSection>
+                <label>Note name equivalence</label>
+                <select
+                  className="Dropdown__Input"
+                  value={this.state.settings.equivalenceRelation.nameEqRel}
+                  onChange={this.onEqRelNameEqRelChange}
+                >
+                  <option value={NoteNameEquivalenceRelation.Reflexive}>
+                    By name
+                  </option>
+                  <option value={NoteNameEquivalenceRelation.ByPitch}>
+                    By pitch
+                  </option>
+                  <option value={NoteNameEquivalenceRelation.ByLetter}>
+                    By letter
+                  </option>
+                </select>
+              </BorderedFittedSection>
+            </IndentedSection>
+          </BorderedFittedSection>
           <table className="SettingsTable">
             <tbody>
               <tr>

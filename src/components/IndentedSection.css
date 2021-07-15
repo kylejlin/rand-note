@@ -1,0 +1,3 @@
+.IndentedSection {
+  padding-left: calc(0.06 * var(--minor-axis));
+}
