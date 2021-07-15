@@ -36,8 +36,8 @@
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
-    "smart-install": "source scripts/smart_install.sh",
-    "archive-node-modules": "source scripts/archive_node_modules.sh"
+    "smart-install": ". scripts/smart_install.sh",
+    "archive-node-modules": ". scripts/archive_node_modules.sh"
   },
   "eslintConfig": {
     "extends": [
