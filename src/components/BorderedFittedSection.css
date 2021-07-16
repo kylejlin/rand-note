@@ -14,7 +14,7 @@
 }
 
 .BorderedSection .BorderedSection--fitted .FittedContainer {
-  border-color: rgb(204, 204, 204);
+  border-color: rgb(172, 218, 151);
   border-style: solid;
   border-radius: calc(0.03 * var(--minor-axis));
   background-color: transparent;
