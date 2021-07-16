@@ -403,4 +403,38 @@ export default class App extends React.Component<{}, State> {
       return { ...prevState, history: newHistory };
     });
   }
+
+  componentDidUpdate() {
+    console.log("u");
+    const svg = document.querySelector("svg");
+    if (svg === null) {
+      return;
+    }
+    const oldViewBox = svg.getAttribute("viewBox");
+    if ("string" === typeof oldViewBox && oldViewBox.length > 0) {
+      return;
+    }
+
+    // This type cast is not sound (i.e., the value could be null),
+    // but `parseInt` can safely accept `null` (it correctly returns `NaN`).
+    const width = parseInt(svg.getAttribute("width") as string);
+    if (isNaN(width)) {
+      return;
+    }
+    // Again, this type cast is also not sound (i.e., the value could be null),
+    // but `parseInt` can safely accept `null` (it correctly returns `NaN`).
+    const height = parseInt(svg.getAttribute("height") as string);
+    if (isNaN(height)) {
+      return;
+    }
+
+    const box = svg.getBoundingClientRect();
+    const trueRight = box.left + width;
+
+    const { innerWidth: windowWidth } = window;
+    if (trueRight > windowWidth) {
+      svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      svg.setAttribute("width", "" + (windowWidth - box.left));
+    }
+  }
 }
