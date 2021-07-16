@@ -31,7 +31,7 @@ jobs:
 
       - name: Archive node_modules
         run: |
-          npm run archive-node-modules &&
+          (cmp package.json node_modules_backup/package_json_checksum.json || npm run archive-node-modules) &&
 
           git config --global user.name 'GitHub Actions Bot' &&
           git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com' &&
@@ -39,7 +39,8 @@ jobs:
           git add node_modules_backup &&
 
           # The commit operation is permitted to fail because it's possible
-          # that no changes were made to `node_modules`.
+          # that no changes were made to `node_modules` (since you can edit `package.json`
+          # without installing, or modifying the `dependencies` at all, for that matter).
           (git commit -am "Backup node_modules" || echo "Current backup is up to date.") &&
 
           # Since we're not using a PAT, we can safely push without
