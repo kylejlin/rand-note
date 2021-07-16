@@ -757,8 +757,8 @@ X: 1
 M: 4/4
 L: 1/4
 %%staves {(V1 V2)}
-V: V1 clef=treble
-V: V2 clef=treble
+V: V1 clef=treble-8
+V: V2 clef=treble-8
 [V: V1] ${noteAbcNotation({
     pitch: settings.maxPitch,
     name: pitchToNoteNames(settings.maxPitch)[0],
